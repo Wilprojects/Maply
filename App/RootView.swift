@@ -14,7 +14,8 @@ struct RootView: View {
     var body: some View {
         Group {
             if isLoggedIn {
-                HomeView(isLoggedIn: $isLoggedIn)
+                //HomeView(isLoggedIn: $isLoggedIn)
+                MainTabView(isLoggedIn: $isLoggedIn)
             } else {
                 LoginView(isLoggedIn: $isLoggedIn)
             }
