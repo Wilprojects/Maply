@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct LoginView: View {
+    @Binding var isLoggedIn: Bool
     @StateObject private var viewModel = AuthViewModel()
     
     var body: some View {
@@ -134,10 +135,15 @@ struct LoginView: View {
                 }
             }
             .navigationBarHidden(true)
+            .onChange(of: viewModel.isLoggedIn) {
+                if viewModel.isLoggedIn {
+                    isLoggedIn = true
+                }
+            }
         }
     }
 }
 
 #Preview {
-    LoginView()
+    LoginView(isLoggedIn: .constant(false))
 }

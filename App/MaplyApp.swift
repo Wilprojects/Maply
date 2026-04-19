@@ -11,7 +11,7 @@ import SwiftUI
 struct MaplyApp: App {
     var body: some Scene {
         WindowGroup {
-            LoginView()
+            RootView()
         }
     }
 }
