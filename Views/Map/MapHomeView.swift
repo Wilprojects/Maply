@@ -8,26 +8,23 @@
 import SwiftUI
 
 struct MapHomeView: View {
-    private let darkColor = Color(red: 41/255, green: 45/255, blue: 50/255)      // #292D32
-    private let bluePrimary = Color(red: 87/255, green: 193/255, blue: 235/255)  // #57C1EB
-    private let tealPrimary = Color(red: 77/255, green: 175/255, blue: 173/255)  // #4DAFAD
-    private let greenPrimary = Color(red: 69/255, green: 198/255, blue: 123/255) // #45C67B
-    private let pageBackground = Color(red: 242/255, green: 244/255, blue: 246/255)
 
     var body: some View {
         ZStack(alignment: .top) {
-            pageBackground
-                .ignoresSafeArea()
+            AppColors.pageBackground
+                .ignoresSafeArea(edges: .top)
 
             VStack(spacing: 0) {
                 headerSection
                 mapSection
                 locationCardSection
+                Spacer(minLength: 0)
             }
+            .padding(.bottom, 34)
         }
-        .padding(.bottom, 102)
         .ignoresSafeArea(edges: .top)
         .navigationBarHidden(true)
+        
     }
 }
 
@@ -37,42 +34,11 @@ struct MapHomeView: View {
 
 private extension MapHomeView {
     var headerSection: some View {
-        ZStack(alignment: .bottom) {
-            darkColor
-                .ignoresSafeArea(edges: .top)
-            VStack(alignment: .leading, spacing: 14) {
-                HStack {
-                    Spacer()
-                    
-                    Button {
-                    }label: {
-                        Text("Filtrar")
-                            .font(.system(size: 16, weight: .semibold, design: .rounded))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 9)
-                            .background(
-                                RoundedRectangle(cornerRadius: 13, style: .continuous)
-                                    .fill(Color.white.opacity(0.10))
-                            )
-                    }
-                }
-                
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Bienvenido a Maply")
-                        .font(.system(size: 17, weight: .medium, design: .rounded))
-                        .foregroundStyle(Color.white.opacity(0.78))
-
-                    Text("Santiago")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
-                }
-            }
-            .padding(.horizontal, 22)
-            .padding(.top, 52)
-            .padding(.bottom, 26)
-        }
-        .frame(height: 150)
+        AppHeaderView(
+            subtitle: "Bienvenido a Maply",
+            title: "Wilder",
+            showsFilterButton: true
+        )
     }
     
     var mapSection: some View {
@@ -105,19 +71,19 @@ private extension MapHomeView {
             
             VStack(spacing: 10) {
                 locationRow(
-                    iconColor: tealPrimary,
+                    iconColor: AppColors.primaryTeal,
                     title: "Work Café",
                     subtitle: "Av. Providencia 1234"
                 )
                 
                 locationRow(
-                    iconColor: greenPrimary,
+                    iconColor: AppColors.primaryGreen,
                     title: "Costanera Center",
                     subtitle: "Av. Andrés Bello 2425"
                 )
                 
                 locationRow(
-                    iconColor: greenPrimary,
+                    iconColor: AppColors.primaryGreen,
                     title: "Parque Bicentenario",
                     subtitle: "Av. Bicentenario 4000",
                     showsMic: true
@@ -129,14 +95,14 @@ private extension MapHomeView {
         }
         .padding(.horizontal, 16)
         .padding(.top, 18)
-        .padding(.bottom, 14)
+        .padding(.bottom, 24)
         .background(
             RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(pageBackground)
+                .fill(AppColors.pageBackground)
                 .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: -2)
         )
         .offset(y: -18)
-        .padding(.bottom, -18)
+        .padding(.bottom, 8)
         
     }
     
@@ -220,7 +186,7 @@ private extension MapHomeView {
                            control2: CGPoint(x: width * 0.67, y: height * 0.75)
                        )
                    }
-                   .stroke(bluePrimary.opacity(0.22), lineWidth: 16)
+                   .stroke(AppColors.primaryBlue.opacity(0.22), lineWidth: 16)
                     
                     Path { path in
                         path.move(to: CGPoint(x: 0, y: height * 0.42))
@@ -238,7 +204,7 @@ private extension MapHomeView {
                         roundedPatch(x: width * 0.18, y: height * 0.70, w: 110, h: 52)
                         roundedPatch(x: width * 0.82, y: height * 0.74, w: 82, h: 48)
                     }
-                    .foregroundStyle(greenPrimary.opacity(0.12))
+                    .foregroundStyle(AppColors.primaryGreen.opacity(0.12))
                     
                 }
                 
@@ -254,16 +220,16 @@ private extension MapHomeView {
     
     var decorativePins: some View {
         ZStack {
-            miniPin(color: tealPrimary)
+            miniPin(color: AppColors.primaryTeal)
                 .offset(x: 30, y: -88)
 
-            miniPin(color: greenPrimary)
+            miniPin(color: AppColors.primaryGreen)
                 .offset(x: 142, y: -44)
 
-            miniPin(color: tealPrimary)
+            miniPin(color: AppColors.primaryTeal)
                 .offset(x: 86, y: 76)
 
-            miniPin(color: greenPrimary)
+            miniPin(color: AppColors.primaryGreen)
                 .offset(x: -142, y: 22)
         }
     }
@@ -280,11 +246,11 @@ private extension MapHomeView {
     var centralPin: some View {
         ZStack {
             Circle()
-                .fill(bluePrimary.opacity(0.18))
+                .fill(AppColors.primaryBlue.opacity(0.18))
                 .frame(width: 118, height: 118)
 
             Circle()
-                .fill(bluePrimary.opacity(0.10))
+                .fill(AppColors.primaryBlue.opacity(0.10))
                 .frame(width: 76, height: 76)
 
             Image(systemName: "mappin.circle.fill")
@@ -293,7 +259,7 @@ private extension MapHomeView {
                 .frame(width: 68, height: 68)
                 .foregroundStyle(
                     LinearGradient(
-                        colors: [bluePrimary, Color.blue],
+                        colors: [AppColors.primaryBlue, Color.blue],
                         startPoint: .top,
                         endPoint: .bottom
                     )
@@ -363,7 +329,7 @@ private extension MapHomeView {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 30, height: 30)
-                    .foregroundStyle(bluePrimary, bluePrimary.opacity(0.18))
+                    .foregroundStyle(AppColors.primaryBlue, AppColors.primaryBlue.opacity(0.18))
             }
 
             Button {
@@ -385,13 +351,13 @@ private extension MapHomeView {
                 .frame(height: 52)
                 .background(
                     LinearGradient(
-                        colors: [Color(red: 0.26, green: 0.55, blue: 0.95), bluePrimary],
+                        colors: [Color(red: 0.26, green: 0.55, blue: 0.95), AppColors.primaryBlue],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                .shadow(color: bluePrimary.opacity(0.22), radius: 8, x: 0, y: 5)
+                .shadow(color: AppColors.primaryBlue.opacity(0.22), radius: 8, x: 0, y: 5)
             }
         }
     }

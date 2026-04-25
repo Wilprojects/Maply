@@ -12,48 +12,29 @@ struct MainTabView: View {
     @Binding var isLoggedIn: Bool
     @State private var selectedTab: AppTab = .map
     
-    private let darkColor = Color(red: 41/255, green: 45/255, blue: 50/255)   // #292D32
-    private let bluePrimary = Color(red: 87/255, green: 193/255, blue: 235/255) // #57C1EB
-    private let tealPrimary = Color(red: 77/255, green: 175/255, blue: 173/255) // #4DAFAD
-    private let pageBackground = Color(red: 242/255, green: 244/255, blue: 246/255)
-    
     var body: some View {
-        
         ZStack(alignment: .bottom) {
-            Group {
-                switch selectedTab {
-                case .map:
-                    MapHomeView()
-                case .locations:
-                    LocationsListView()
-                case .settings:
-                    SettingsView(isLoggedIn: $isLoggedIn)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(pageBackground)
-            .ignoresSafeArea()
+            currentScreen
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(AppColors.pageBackground)
+                .ignoresSafeArea(edges: .top)
             
             customTabBar
         }
-        
-        /*TabView {
+        .background(AppColors.pageBackground)
+        .ignoresSafeArea(edges: .bottom)
+    }
+    
+    @ViewBuilder
+    var currentScreen: some View {
+        switch selectedTab {
+        case .map:
             MapHomeView()
-                .tabItem {
-                    Label("Mapa", systemImage: "map")
-                }
-            
+        case .locations:
             LocationsListView()
-                .tabItem {
-                    Label("Ubicaciones", systemImage: "list.bullet")
-                }
-            
+        case .settings:
             SettingsView(isLoggedIn: $isLoggedIn)
-                .tabItem {
-                    Label("Ajustes", systemImage: "gearshape")
-                }
-
-        }*/
+        }
     }
 }
 
@@ -70,7 +51,7 @@ private extension MainTabView {
                     tab: .map,
                     icon: "mappin.circle.fill",
                     title: "Mapa",
-                    activeColor: bluePrimary
+                    activeColor: AppColors.primaryBlue
                 )
                 
                 verticalDivider
@@ -79,46 +60,47 @@ private extension MainTabView {
                     tab: .locations,
                     icon: "bookmark.fill",
                     title: "Ubicaciones",
-                    activeColor: tealPrimary
+                    activeColor: AppColors.primaryTeal
                 )
                 
                 verticalDivider
-
+                
                 tabItemView(
                     tab: .settings,
                     icon: "gearshape.fill",
                     title: "Ajustes",
-                    activeColor: Color.gray.opacity(0.9)
+                    activeColor: AppColors.primaryGreen
                 )
             }
-            .frame(height: 86)
-            .padding(.horizontal, 12)
+            .frame(height: 76)
+            .padding(.horizontal, 10)
             .background(
-                RoundedRectangle(cornerRadius: 0, style: .continuous)
-                    .fill(darkColor)
-                    .shadow(color: .black.opacity(0.12), radius: 10, x: 0, y: -4)
+                AppColors.darkSurface
+                    .shadow(color: .black.opacity(0.10), radius: 8, x: 0, y: -3)
             )
             
-            Rectangle()
-                .fill(Color.black.opacity(0.72))
-                .frame(width: 135, height: 5)
-                .clipShape(Capsule())
-                .padding(.top, 8)
-                .padding(.bottom, 8)
-                .frame(maxWidth: .infinity)
-                .background(darkColor)
+            ZStack {
+                AppColors.darkSurface
+                
+                Rectangle()
+                    .fill(Color.black.opacity(0.72))
+                    .frame(width: 134, height: 5)
+                    .clipShape(Capsule())
+            }
+            .frame(height: 20)
         }
-        .ignoresSafeArea(edges: .bottom)
+        .frame(maxWidth: .infinity)
+        .background(AppColors.darkSurface)
     }
     
     
     var verticalDivider: some View {
         Rectangle()
-            .fill(Color.white.opacity(0.16))
-            .frame(width: 1, height: 34)
-            .padding(.top, 10)
+            .fill(Color.white.opacity(0.14))
+            .frame(width: 1, height: 30)
     }
     
+
     
     func tabItemView(tab: AppTab, icon: String, title: String, activeColor: Color) -> some View {
         let isSelected = selectedTab == tab
@@ -127,18 +109,18 @@ private extension MainTabView {
             withAnimation(.easeInOut(duration: 0.2)) {
                 selectedTab = tab
             }
-        }label: {
-            VStack(spacing: 8) {
+        } label: {
+            VStack(spacing: 6) {
                 Image(systemName: icon)
-                    .font(.system(size: 23, weight: .semibold))
+                    .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(isSelected ? activeColor : Color.white.opacity(0.78))
 
                 Text(title)
-                    .font(.system(size: 14, weight: isSelected ? .semibold : .medium, design: .rounded))
-                    .foregroundStyle(isSelected ? Color.white : Color.white.opacity(0.78))
+                    .font(.system(size: 12, weight: isSelected ? .semibold : .medium, design: .rounded))
+                    .foregroundStyle(Color.white.opacity(isSelected ? 1.0 : 0.78))
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 86)
+            .frame(height: 76)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

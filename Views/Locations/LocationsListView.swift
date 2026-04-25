@@ -9,30 +9,10 @@ import SwiftUI
 
 struct LocationsListView: View {
     
-    private let darkColor = Color(red: 41/255, green: 45/255, blue: 50/255)      // #292D32
-    private let bluePrimary = Color(red: 87/255, green: 193/255, blue: 235/255)  // #57C1EB
-    private let tealPrimary = Color(red: 77/255, green: 175/255, blue: 173/255)  // #4DAFAD
-    private let greenPrimary = Color(red: 69/255, green: 198/255, blue: 123/255) // #45C67B
-    private let pageBackground = Color(red: 242/255, green: 244/255, blue: 246/255)
-    
     var body: some View {
-        /*
-        NavigationStack {
-            List {
-                Section("Ubicaciones guardadas") {
-                    Label("Casa", systemImage: "mappin.and.ellipse")
-                    Label("Trabajo", systemImage: "mappin.and.ellipse")
-                    Label("Universidad", systemImage: "mappin.and.ellipse")
-                }
-            }
-            .navigationTitle("Ubicaciones")
-            .padding(.bottom, 95)
-        }
-        
-        */
         
         ZStack(alignment: .top) {
-            pageBackground
+            AppColors.pageBackground
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
@@ -44,28 +24,28 @@ struct LocationsListView: View {
                         
                         VStack(spacing: 12) {
                             locationCard(
-                                iconColor: tealPrimary,
+                                iconColor: AppColors.primaryTeal,
                                 title: "Work Café",
                                 subtitle: "Av. Providencia 1234",
                                 category: "Favorito"
                             )
 
                             locationCard(
-                                iconColor: greenPrimary,
+                                iconColor: AppColors.primaryGreen,
                                 title: "Costanera Center",
                                 subtitle: "Av. Andrés Bello 2425",
                                 category: "Trabajo"
                             )
 
                             locationCard(
-                                iconColor: greenPrimary,
+                                iconColor: AppColors.primaryGreen,
                                 title: "Parque Bicentenario",
                                 subtitle: "Av. Bicentenario 4000",
                                 category: "Reciente"
                             )
 
                             locationCard(
-                                iconColor: bluePrimary,
+                                iconColor: AppColors.primaryBlue,
                                 title: "Casa",
                                 subtitle: "Calle Principal 123",
                                 category: "Guardado"
@@ -74,9 +54,11 @@ struct LocationsListView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.top, 20)
-                    .padding(.bottom, 120)
+                    .padding(.bottom, 24)
                 }
+                
             }
+            
         }
         .ignoresSafeArea(edges: .top)
         .navigationBarHidden(true)
@@ -90,26 +72,13 @@ struct LocationsListView: View {
 
 private extension LocationsListView {
     var headerSection: some View {
-        ZStack(alignment: .bottomLeading) {
-            darkColor
-                .ignoresSafeArea(edges: .top)
-            
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Tus lugares")
-                    .font(.system(size: 17, weight: .medium, design: .rounded))
-                    .foregroundStyle(Color.white.opacity(0.78))
-
-                Text("Ubicaciones")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
-            }
-            .padding(.horizontal, 22)
-            .padding(.top, 52)
-            .padding(.bottom, 18)
-        }
-        .frame(height: 145)
+        AppHeaderView(
+            subtitle: "Tus lugares",
+            title: "Ubicaciones",
+            showsFilterButton: false
+        )
     }
-    
+        
     
     var sectionTitle: some View {
         HStack {
@@ -155,7 +124,7 @@ private extension LocationsListView {
 
                 Text(subtitle)
                     .font(.system(size: 14, weight: .medium, design: .rounded))
-                    .foregroundStyle(Color.gray.opacity(0.95))
+                    .foregroundStyle(AppColors.secondaryText.opacity(0.95))
             }
             
             Image(systemName: "chevron.right")
@@ -166,7 +135,7 @@ private extension LocationsListView {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color.white.opacity(0.88))
+                .fill(AppColors.cardBackground.opacity(0.88))
                 .overlay(
                     RoundedRectangle(cornerRadius: 22, style: .continuous)
                         .stroke(Color.black.opacity(0.04), lineWidth: 1)
