@@ -7,58 +7,65 @@
 
 import SwiftUI
 import MapKit
+import SwiftData
 
 struct MapHomeView: View {
     
     @StateObject private var locationManager = LocationManager()
     
-    @State private var savedLocations: [SavedLocation] = [
-        SavedLocation(
-            name: "El Ricón de Vallejo",
-            address: "Jirón Orbegoso 311",
-            latitude: -8.110244,
-            longitude: -79.029445,
-            color: AppColors.primaryTeal
-        ),
-        SavedLocation(
-            name: "Hospital Belen",
-            address: "Jirón Bolivar 350",
-            latitude: -8.114534,
-            longitude: -79.028418,
-            color: AppColors.primaryGreen
-        ),
-        SavedLocation(
-            name: "Universidad Privada Antenor Orrego",
-            address: "Av. América Sur 3145",
-            latitude: -8.126964,
-            longitude: -79.031420,
-            color: AppColors.primaryGreen
-        )
-    ]
+    @Environment(\.modelContext) private var modelContext
+
+    @Query(sort: \SavedLocationItem.createdAt, order: .reverse)
+    private var savedLocations: [SavedLocationItem]
+    
+    @State private var isShowingSaveLocationSheet = false
+    @State private var locationName = ""
+    @State private var locationAddress = ""
+    
+    @State private var isShowingDeleteConfirmation = false
+    @State private var locationToDelete: SavedLocationItem?
     
     var body: some View {
         
-        GeometryReader { geometry in
-            ZStack(alignment: .top) {
-                AppColors.pageBackground
-                    .ignoresSafeArea(edges: .top)
-                
-                VStack(spacing: 0) {
-                    headerSection
-                    mapSection
-                    locationCardSection(
-                        availableHeight: geometry.size.height
-                    )
-                    //Spacer(minLength: 0)
+        NavigationStack{
+            GeometryReader { geometry in
+                ZStack(alignment: .top) {
+                    AppColors.pageBackground
+                        .ignoresSafeArea(edges: .top)
+                    
+                    VStack(spacing: 0) {
+                        headerSection
+                        mapSection
+                        locationCardSection(
+                            availableHeight: geometry.size.height
+                        )
+                        //Spacer(minLength: 0)
+                    }
+                    //.padding(.bottom, 34)
+                    
+                    if isShowingSaveLocationSheet {
+                        saveLocationPopup
+                    }
                 }
-                .padding(.bottom, 34)
+                .ignoresSafeArea(edges: .top)
+                .navigationBarHidden(true)
+                
             }
-            .ignoresSafeArea(edges: .top)
-            .navigationBarHidden(true)
             .onAppear {
                 locationManager.requestWhenInUseAuthorization()
                 locationManager.startUpdatingLocation()
             }
+            .alert("Eliminar ubicación", isPresented: $isShowingDeleteConfirmation, presenting: locationToDelete) { location in
+                Button("Cancelar", role: .cancel) { }
+                
+                Button("Eliminar", role: .destructive) {
+                    deleteLocation(location)
+                    locationToDelete = nil
+                }
+            } message: { location in
+                Text("¿Deseas eliminar \"\(location.name)\"? Esta acción no se puede deshacer.")
+            }
+            
         }
     }
 }
@@ -82,7 +89,7 @@ private extension MapHomeView {
             
             ForEach(savedLocations) { location in
                 Annotation(location.name, coordinate: location.coordinate) {
-                    mapPinView(color: pinColor(for: location.name))
+                    mapPinView(color: colorForHex(location.colorHex))
                 }
             }
         }
@@ -98,15 +105,13 @@ private extension MapHomeView {
     
     
     func locationCardSection(availableHeight: CGFloat) -> some View {
-        
         let headerHeight: CGFloat = 165
         let mapHeight: CGFloat = 272
-        let tabBarReservedHeight: CGFloat = 96
-        let topOverlap: CGFloat = 18
+        let overlap: CGFloat = 18
         
         let cardHeight = max(
-            availableHeight - headerHeight - mapHeight - tabBarReservedHeight + topOverlap,
-            260
+            availableHeight - headerHeight - mapHeight + overlap,
+            320
         )
         
         return VStack(spacing: 14) {
@@ -114,36 +119,36 @@ private extension MapHomeView {
                 Text("Mi Ubicación")
                     .font(.system(size: 22, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.black.opacity(0.92))
-
+                
                 Spacer()
-
+                
                 HStack(spacing: 6) {
                     Circle().fill(Color.gray.opacity(0.55)).frame(width: 6, height: 6)
                     Circle().fill(Color.gray.opacity(0.55)).frame(width: 6, height: 6)
                     Circle().fill(Color.gray.opacity(0.55)).frame(width: 6, height: 6)
                 }
             }
+            .padding(.top, 2)
             
-            /*VStack(spacing: 10) {
+            List {
                 ForEach(savedLocations) { location in
                     locationRow(location: location)
-                }
-                
-            } */
-            
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 10) {
-                    ForEach(savedLocations) { location in
-                        locationRow(location: location)
-                    }
+                        .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
                 }
             }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .background(Color.clear)
             
             saveLocationSection
+                .padding(.top, 4)
         }
         .padding(.horizontal, 16)
         .padding(.top, 18)
-        .padding(.bottom, 16)
+        .padding(.bottom, 18)
+        .frame(maxWidth: .infinity)
         .frame(height: cardHeight, alignment: .top)
         .background(
             RoundedRectangle(cornerRadius: 28, style: .continuous)
@@ -151,8 +156,6 @@ private extension MapHomeView {
                 .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: -2)
         )
         .offset(y: -18)
-        //.padding(.bottom, 8)
-        
     }
     
 }
@@ -180,183 +183,35 @@ private extension MapHomeView {
             .foregroundStyle(color, color.opacity(0.18))
             .shadow(color: .black.opacity(0.14), radius: 4, x: 0, y: 2)
     }
-    
-    func pinColor(for locationName: String) -> Color {
-        switch locationName {
-        case "El Ricón de Vallejo":
-            return AppColors.primaryTeal
-        case "Hospital Belen":
-            return AppColors.primaryGreen
-        case "Universidad Privada Antenor Orrego":
-            return AppColors.primaryGreen
-        default:
-            return AppColors.primaryBlue
-        }
-    }
-}
-
-private extension MapHomeView {
-    var mapBackground: some View {
-        ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 244/255, green: 245/255, blue: 246/255),
-                    Color(red: 232/255, green: 237/255, blue: 234/255)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            
-            GeometryReader { proxy in
-                let width = proxy.size.width
-                let height = proxy.size.height
-                
-                ZStack {
-                    ForEach(0..<9, id: \.self) { index in
-                        Path { path in
-                            let y = CGFloat(index) * (height / 8.2)
-                            path.move(to: CGPoint(x: 0, y: y))
-                            path.addCurve(
-                                to: CGPoint(x: width, y: y + 8),
-                                control1: CGPoint(x: width * 0.22, y: y - 14),
-                                control2: CGPoint(x: width * 0.74, y: y + 24)
-                            )
-                        }
-                        .stroke(Color.white.opacity(0.92), lineWidth: 5.5)
-                    }
-                    
-                    ForEach(0..<8, id: \.self) { index in
-                        Path { path in
-                            let x = CGFloat(index) * (width / 7)
-                            path.move(to: CGPoint(x: x, y: 0))
-                            path.addCurve(
-                                to: CGPoint(x: x + 18, y: height),
-                                control1: CGPoint(x: x - 18, y: height * 0.22),
-                                control2: CGPoint(x: x + 35, y: height * 0.78)
-                            )
-                        }
-                        .stroke(Color.white.opacity(0.78), lineWidth: 4.6)
-                    }
-                    
-                    Path { path in
-                       path.move(to: CGPoint(x: width * 0.53, y: 0))
-                       path.addCurve(
-                           to: CGPoint(x: width * 0.58, y: height),
-                           control1: CGPoint(x: width * 0.48, y: height * 0.25),
-                           control2: CGPoint(x: width * 0.67, y: height * 0.75)
-                       )
-                   }
-                   .stroke(AppColors.primaryBlue.opacity(0.22), lineWidth: 16)
-                    
-                    Path { path in
-                        path.move(to: CGPoint(x: 0, y: height * 0.42))
-                        path.addCurve(
-                            to: CGPoint(x: width, y: height * 0.25),
-                            control1: CGPoint(x: width * 0.28, y: height * 0.18),
-                            control2: CGPoint(x: width * 0.72, y: height * 0.52)
-                        )
-                    }
-                    .stroke(Color(red: 0.93, green: 0.76, blue: 0.43).opacity(0.35), lineWidth: 8)
-                    
-                    Group {
-                        roundedPatch(x: width * 0.30, y: height * 0.20, w: 110, h: 52)
-                        roundedPatch(x: width * 0.75, y: height * 0.18, w: 92, h: 48)
-                        roundedPatch(x: width * 0.18, y: height * 0.70, w: 110, h: 52)
-                        roundedPatch(x: width * 0.82, y: height * 0.74, w: 82, h: 48)
-                    }
-                    .foregroundStyle(AppColors.primaryGreen.opacity(0.12))
-                    
-                }
-                
-            }
-        }
-    }
-    
-    func roundedPatch(x: CGFloat, y: CGFloat, w: CGFloat, h: CGFloat) -> some View {
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
-            .frame(width: w, height: h)
-            .position(x: x, y: y)
-    }
-    
-    var decorativePins: some View {
-        ZStack {
-            miniPin(color: AppColors.primaryTeal)
-                .offset(x: 30, y: -88)
-
-            miniPin(color: AppColors.primaryGreen)
-                .offset(x: 142, y: -44)
-
-            miniPin(color: AppColors.primaryTeal)
-                .offset(x: 86, y: 76)
-
-            miniPin(color: AppColors.primaryGreen)
-                .offset(x: -142, y: 22)
-        }
-    }
-    
-    func miniPin(color: Color) -> some View {
-        Image(systemName: "mappin.circle.fill")
-            .resizable()
-            .scaledToFit()
-            .frame(width: 40, height: 40)
-            .foregroundStyle(color, color.opacity(0.18))
-            .shadow(color: .black.opacity(0.10), radius: 4, x: 0, y: 2)
-    }
-    
-    var centralPin: some View {
-        ZStack {
-            Circle()
-                .fill(AppColors.primaryBlue.opacity(0.18))
-                .frame(width: 118, height: 118)
-
-            Circle()
-                .fill(AppColors.primaryBlue.opacity(0.10))
-                .frame(width: 76, height: 76)
-
-            Image(systemName: "mappin.circle.fill")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 68, height: 68)
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [AppColors.primaryBlue, Color.blue],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .shadow(color: .black.opacity(0.16), radius: 10, x: 0, y: 6)
-        }
-        .offset(y: -2)
-    }
 }
 
 
 private extension MapHomeView {
-    func locationRow(location: SavedLocation) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: "mappin.circle.fill")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 34, height: 34)
-                .foregroundStyle(location.color, location.color.opacity(0.18))
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(location.name)
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
-                    .foregroundStyle(Color.black.opacity(0.80))
+    func locationRow(location: SavedLocationItem) -> some View {
+        NavigationLink {
+            LocationDetailView(location: location)
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "mappin.circle.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 34, height: 34)
+                    .foregroundStyle(colorForHex(location.colorHex), colorForHex(location.colorHex).opacity(0.18))
                 
-                HStack(spacing: 4) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(location.name)
+                        .font(.system(size: 17, weight: .semibold, design: .rounded))
+                        .foregroundStyle(Color.black.opacity(0.80))
+                        .lineLimit(1)
+                    
                     Text(location.address)
                         .font(.system(size: 13.5, weight: .medium, design: .rounded))
                         .foregroundStyle(Color.gray.opacity(0.95))
+                        .lineLimit(1)
                 }
+                
+                Spacer()
             }
-            
-            Spacer()
-            
-            Image(systemName: "chevron.right")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(Color.gray.opacity(0.70))
             
         }
         .padding(.horizontal, 14)
@@ -369,6 +224,14 @@ private extension MapHomeView {
                         .stroke(Color.black.opacity(0.04), lineWidth: 1)
                 )
         )
+        .buttonStyle(.plain)
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button(role: .destructive) {
+                confirmDeleteLocation(location)
+            } label: {
+                Label("Eliminar", systemImage: "trash")
+            }
+        }
     }
     
     
@@ -387,7 +250,9 @@ private extension MapHomeView {
             }
 
             Button {
-                saveCurrentLocation()
+                locationName = ""
+                locationAddress = ""
+                isShowingSaveLocationSheet = true
             } label: {
                 HStack {
                     Spacer()
@@ -417,18 +282,118 @@ private extension MapHomeView {
         }
     }
     
-    func saveCurrentLocation() {
+    func saveCurrentLocation(name: String, address: String) {
         guard let location = locationManager.currentLocation else { return }
+            
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedAddress = address.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        let newLocation = SavedLocation(
-            name: "Ubicación \(savedLocations.count + 1)",
-            address: "Lat: \(String(format: "%.4f", location.coordinate.latitude)), Lon: \(String(format: "%.4f", location.coordinate.longitude))",
+        guard !trimmedName.isEmpty, !trimmedAddress.isEmpty else { return }
+            
+        let newLocation = SavedLocationItem(
+            name: trimmedName,
+            address: trimmedAddress,
             latitude: location.coordinate.latitude,
             longitude: location.coordinate.longitude,
-            color: AppColors.primaryBlue
+            colorHex: "blue"
         )
         
-        //savedLocations.append(newLocation)
-        savedLocations.insert(newLocation, at: 0)
+        modelContext.insert(newLocation)
+    }
+    
+    
+    func colorForHex(_ colorHex: String) -> Color {
+        switch colorHex {
+        case "teal":
+            return AppColors.primaryTeal
+        case "green":
+            return AppColors.primaryGreen
+        case "blue":
+            return AppColors.primaryBlue
+        default:
+            return AppColors.primaryBlue
+        }
+    }
+    
+    func deleteLocation(_ location: SavedLocationItem) {
+        modelContext.delete(location)
+        locationToDelete = nil
+    }
+    
+    func confirmDeleteLocation(_ location: SavedLocationItem) {
+        locationToDelete = location
+        isShowingDeleteConfirmation = true
+    }
+}
+
+private extension MapHomeView {
+    var saveLocationPopup: some View {
+        ZStack {
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    isShowingSaveLocationSheet = false
+                }
+            
+            VStack(spacing: 20) {
+                
+                Text("Nueva ubicación")
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                
+                VStack(spacing: 12) {
+                    TextField("Nombre de la ubicación", text: $locationName)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(AppColors.cardBackground)
+                        )
+                    
+                    TextField("Dirección o referencia", text: $locationAddress)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(AppColors.cardBackground)
+                        )
+                }
+                
+                HStack(spacing: 12) {
+                    Button {
+                        isShowingSaveLocationSheet = false
+                    } label: {
+                        Text("Cancelar")
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .background(Color.gray.opacity(0.2))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    
+                    Button {
+                        saveCurrentLocation(name: locationName, address: locationAddress)
+                        isShowingSaveLocationSheet = false
+                    } label: {
+                        Text("Guardar")
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .background(AppColors.primaryBlue)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    .disabled(
+                        locationName.trimmingCharacters(in: .whitespaces).isEmpty ||
+                        locationAddress.trimmingCharacters(in: .whitespaces).isEmpty
+                    )
+                    .opacity(
+                        locationName.isEmpty || locationAddress.isEmpty ? 0.6 : 1
+                    )
+                }
+            }
+            .padding(20)
+            .frame(width: 320)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(AppColors.pageBackground)
+            )
+            .shadow(radius: 20)
+        }
     }
 }

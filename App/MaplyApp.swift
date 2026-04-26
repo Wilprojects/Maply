@@ -14,5 +14,6 @@ struct MaplyApp: App {
         WindowGroup {
             RootView()
         }
+        .modelContainer(for: [SavedLocationItem.self])
     }
 }

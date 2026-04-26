@@ -1,0 +1,138 @@
+//
+//  LocationDetailView.swift
+//  Maply
+//
+//  Created by Wilder Moreno on 26/04/26.
+//
+
+import SwiftUI
+import MapKit
+
+struct LocationDetailView: View {
+    let location: SavedLocationItem
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                headerCard
+                
+                infoCard
+                
+                coordinatesCard
+            }
+            .padding(16)
+            .padding(.bottom, 24)
+        }
+        .background(AppColors.pageBackground)
+        .navigationTitle("Detalle")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+#Preview {
+    let previewLocation = SavedLocationItem(
+        name: "Work Café",
+        address: "Av. Providencia 1234",
+        latitude: -8.1095,
+        longitude: -79.0282,
+        colorHex: "teal"
+    )
+    
+    NavigationStack {
+        LocationDetailView(location: previewLocation)
+    }
+}
+
+private extension LocationDetailView {
+    var headerCard: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "mappin.circle.fill")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 70, height: 70)
+                .foregroundStyle(colorForHex(location.colorHex), colorForHex(location.colorHex).opacity(0.18))
+            
+            Text(location.name)
+                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.black.opacity(0.85))
+            
+            Text(location.address)
+                .font(.system(size: 16, weight: .medium, design: .rounded))
+                .foregroundStyle(AppColors.secondaryText)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(AppColors.cardBackground.opacity(0.92))
+        )
+    }
+    
+    var infoCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Información")
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.black.opacity(0.85))
+            
+            detailRow(title: "Nombre", value: location.name)
+            detailRow(title: "Dirección", value: location.address)
+            detailRow(title: "Color", value: location.colorHex.capitalized)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(AppColors.cardBackground.opacity(0.92))
+        )
+    }
+    
+    var coordinatesCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Coordenadas")
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.black.opacity(0.85))
+            
+            detailRow(
+                title: "Latitud",
+                value: String(format: "%.6f", location.latitude)
+            )
+            
+            detailRow(
+                title: "Longitud",
+                value: String(format: "%.6f", location.longitude)
+            )
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(AppColors.cardBackground.opacity(0.92))
+        )
+    }
+    
+    func detailRow(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .foregroundStyle(AppColors.secondaryText)
+            
+            Text(value)
+                .font(.system(size: 17, weight: .medium, design: .rounded))
+                .foregroundStyle(Color.black.opacity(0.82))
+        }
+    }
+    
+    func colorForHex(_ colorHex: String) -> Color {
+        switch colorHex {
+        case "teal":
+            return AppColors.primaryTeal
+        case "green":
+            return AppColors.primaryGreen
+        case "blue":
+            return AppColors.primaryBlue
+        default:
+            return AppColors.primaryBlue
+        }
+    }
+}
