@@ -6,60 +6,25 @@
 //
 
 import SwiftUI
-import MapKit
 
-struct MapHomeView: View {
-    
-    @StateObject private var locationManager = LocationManager()
-    
-    @State private var savedLocations: [SavedLocation] = [
-        SavedLocation(
-            name: "El Ricón de Vallejo",
-            address: "Jirón Orbegoso 311",
-            latitude: -8.110244,
-            longitude: -79.029445,
-            color: AppColors.primaryTeal
-        ),
-        SavedLocation(
-            name: "Hospital Belen",
-            address: "Jirón Bolivar 350",
-            latitude: -8.114534,
-            longitude: -79.028418,
-            color: AppColors.primaryGreen
-        ),
-        SavedLocation(
-            name: "Universidad Privada Antenor Orrego",
-            address: "Av. América Sur 3145",
-            latitude: -8.126964,
-            longitude: -79.031420,
-            color: AppColors.primaryGreen
-        )
-    ]
-    
+struct MapHomeView2: View {
+
     var body: some View {
-        
-        GeometryReader { geometry in
-            ZStack(alignment: .top) {
-                AppColors.pageBackground
-                    .ignoresSafeArea(edges: .top)
-                
-                VStack(spacing: 0) {
-                    headerSection
-                    mapSection
-                    locationCardSection(
-                        availableHeight: geometry.size.height
-                    )
-                    //Spacer(minLength: 0)
-                }
-                .padding(.bottom, 34)
+        ZStack(alignment: .top) {
+            AppColors.pageBackground
+                .ignoresSafeArea(edges: .top)
+
+            VStack(spacing: 0) {
+                headerSection
+                mapSection
+                locationCardSection
+                Spacer(minLength: 0)
             }
-            .ignoresSafeArea(edges: .top)
-            .navigationBarHidden(true)
-            .onAppear {
-                locationManager.requestWhenInUseAuthorization()
-                locationManager.startUpdatingLocation()
-            }
+            .padding(.bottom, 34)
         }
+        .ignoresSafeArea(edges: .top)
+        .navigationBarHidden(true)
+        
     }
 }
 
@@ -67,7 +32,7 @@ struct MapHomeView: View {
     MapHomeView()
 }
 
-private extension MapHomeView {
+private extension MapHomeView2 {
     var headerSection: some View {
         AppHeaderView(
             subtitle: "Bienvenido a Maply",
@@ -77,39 +42,19 @@ private extension MapHomeView {
     }
     
     var mapSection: some View {
-        Map(position: $locationManager.cameraPosition) {
-            UserAnnotation()
-            
-            ForEach(savedLocations) { location in
-                Annotation(location.name, coordinate: location.coordinate) {
-                    mapPinView(color: pinColor(for: location.name))
-                }
-            }
+        ZStack {
+            mapBackground
+            decorativePins
+            centralPin
+            locationPoint
         }
-        .mapStyle(.standard)
         .frame(height: 272)
         .clipped()
-        .overlay(alignment: .bottomTrailing) {
-            locationPointButton
-                .padding(.trailing, 22)
-                .padding(.bottom, 32)
-        }
     }
     
     
-    func locationCardSection(availableHeight: CGFloat) -> some View {
-        
-        let headerHeight: CGFloat = 165
-        let mapHeight: CGFloat = 272
-        let tabBarReservedHeight: CGFloat = 96
-        let topOverlap: CGFloat = 18
-        
-        let cardHeight = max(
-            availableHeight - headerHeight - mapHeight - tabBarReservedHeight + topOverlap,
-            260
-        )
-        
-        return VStack(spacing: 14) {
+    var locationCardSection: some View {
+        VStack(spacing: 14) {
             HStack {
                 Text("Mi Ubicación")
                     .font(.system(size: 22, weight: .bold, design: .rounded))
@@ -124,78 +69,73 @@ private extension MapHomeView {
                 }
             }
             
-            /*VStack(spacing: 10) {
-                ForEach(savedLocations) { location in
-                    locationRow(location: location)
-                }
+            VStack(spacing: 10) {
+                locationRow(
+                    iconColor: AppColors.primaryTeal,
+                    title: "Work Café",
+                    subtitle: "Av. Providencia 1234"
+                )
                 
-            } */
-            
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 10) {
-                    ForEach(savedLocations) { location in
-                        locationRow(location: location)
-                    }
-                }
+                locationRow(
+                    iconColor: AppColors.primaryGreen,
+                    title: "Costanera Center",
+                    subtitle: "Av. Andrés Bello 2425"
+                )
+                
+                locationRow(
+                    iconColor: AppColors.primaryGreen,
+                    title: "Parque Bicentenario",
+                    subtitle: "Av. Bicentenario 4000",
+                    showsMic: true
+                )
+                
             }
             
             saveLocationSection
         }
         .padding(.horizontal, 16)
         .padding(.top, 18)
-        .padding(.bottom, 16)
-        .frame(height: cardHeight, alignment: .top)
+        .padding(.bottom, 24)
         .background(
             RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .fill(AppColors.pageBackground)
                 .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: -2)
         )
         .offset(y: -18)
-        //.padding(.bottom, 8)
+        .padding(.bottom, 8)
         
     }
     
 }
 
-private extension MapHomeView {
-    var locationPointButton: some View{
-        Button {
-            locationManager.recenterOnUser()
-        } label: {
-            Image(systemName: "location.north.fill")
-                .font(.system(size: 22, weight: .bold))
-                .foregroundStyle(.red, .gray.opacity(0.2))
-                .frame(width: 66, height: 66)
-                .background(.white)
-                .clipShape(Circle())
-                .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 6)
-        }
-    }
-    
-    func mapPinView(color: Color) -> some View {
-        Image(systemName: "mappin.circle.fill")
-            .resizable()
-            .scaledToFit()
-            .frame(width: 34, height: 34)
-            .foregroundStyle(color, color.opacity(0.18))
-            .shadow(color: .black.opacity(0.14), radius: 4, x: 0, y: 2)
-    }
-    
-    func pinColor(for locationName: String) -> Color {
-        switch locationName {
-        case "El Ricón de Vallejo":
-            return AppColors.primaryTeal
-        case "Hospital Belen":
-            return AppColors.primaryGreen
-        case "Universidad Privada Antenor Orrego":
-            return AppColors.primaryGreen
-        default:
-            return AppColors.primaryBlue
+private extension MapHomeView2 {
+    var locationPoint: some View{
+        VStack {
+            Spacer()
+            
+            HStack {
+                Spacer()
+                
+                Button {
+                } label: {
+                    Image(systemName: "location.north.fill")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundStyle(.red, .gray.opacity(0.2))
+                        .frame(width: 66, height: 66)
+                        .background(.white)
+                        .clipShape(Circle())
+                        .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 6)
+                }
+                .padding(.trailing, 22)
+                .padding(.bottom, 32)
+                
+            }
+            
         }
     }
 }
 
-private extension MapHomeView {
+private extension MapHomeView2 {
     var mapBackground: some View {
         ZStack {
             LinearGradient(
@@ -331,24 +271,30 @@ private extension MapHomeView {
 }
 
 
-private extension MapHomeView {
-    func locationRow(location: SavedLocation) -> some View {
+private extension MapHomeView2 {
+    func locationRow(iconColor: Color, title: String, subtitle: String, showsMic: Bool = false ) -> some View {
         HStack(spacing: 12) {
             Image(systemName: "mappin.circle.fill")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 34, height: 34)
-                .foregroundStyle(location.color, location.color.opacity(0.18))
+                .foregroundStyle(iconColor, iconColor.opacity(0.18))
             
             VStack(alignment: .leading, spacing: 4) {
-                Text(location.name)
+                Text(title)
                     .font(.system(size: 17, weight: .semibold, design: .rounded))
                     .foregroundStyle(Color.black.opacity(0.80))
                 
                 HStack(spacing: 4) {
-                    Text(location.address)
+                    Text(subtitle)
                         .font(.system(size: 13.5, weight: .medium, design: .rounded))
                         .foregroundStyle(Color.gray.opacity(0.95))
+
+                    if showsMic {
+                        Image(systemName: "mic.fill")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(Color.gray.opacity(0.75))
+                    }
                 }
             }
             
@@ -387,7 +333,6 @@ private extension MapHomeView {
             }
 
             Button {
-                saveCurrentLocation()
             } label: {
                 HStack {
                     Spacer()
@@ -415,20 +360,5 @@ private extension MapHomeView {
                 .shadow(color: AppColors.primaryBlue.opacity(0.22), radius: 8, x: 0, y: 5)
             }
         }
-    }
-    
-    func saveCurrentLocation() {
-        guard let location = locationManager.currentLocation else { return }
-        
-        let newLocation = SavedLocation(
-            name: "Ubicación \(savedLocations.count + 1)",
-            address: "Lat: \(String(format: "%.4f", location.coordinate.latitude)), Lon: \(String(format: "%.4f", location.coordinate.longitude))",
-            latitude: location.coordinate.latitude,
-            longitude: location.coordinate.longitude,
-            color: AppColors.primaryBlue
-        )
-        
-        //savedLocations.append(newLocation)
-        savedLocations.insert(newLocation, at: 0)
     }
 }
