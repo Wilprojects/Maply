@@ -10,6 +10,7 @@ import CoreLocation
 
 struct PrivacyView: View {
     @StateObject private var locationManager = LocationManager()
+    @Environment(\.scenePhase) private var scenePhase
     
     var body: some View {
         ScrollView {
@@ -25,8 +26,11 @@ struct PrivacyView: View {
         .navigationTitle("Privacidad")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            if locationManager.isLocationAuthorized {
-                locationManager.startUpdatingLocation()
+            refreshPrivacyStatus()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                refreshPrivacyStatus()
             }
         }
     }
@@ -100,7 +104,8 @@ private extension PrivacyView {
             
             if locationManager.canRequestLocationPermission {
                 Button {
-                    locationManager.requestWhenInUseAuthorization()
+                    //locationManager.requestWhenInUseAuthorization()
+                    locationManager.requestWhenInUseAuthorizationIfNeeded()
                 } label: {
                     actionButtonLabel(
                         title: "Solicitar permiso",
@@ -172,6 +177,16 @@ private extension PrivacyView {
                         .stroke(Color.black.opacity(0.04), lineWidth: 1)
                 )
         )
+    }
+    
+    func refreshPrivacyStatus() {
+        locationManager.refreshAuthorizationStatus()
+        
+        if locationManager.isLocationAuthorized {
+            locationManager.startUpdatingLocationIfAuthorized()
+        } else {
+            locationManager.stopUpdatingLocation()
+        }
     }
     
     var iconNameForStatus: String {

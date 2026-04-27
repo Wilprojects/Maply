@@ -5,8 +5,8 @@
 //  Created by Wilder Moreno on 25/04/26.
 //
 
-import SwiftUI
 import Foundation
+import SwiftUI
 import CoreLocation
 import MapKit
 import Combine
@@ -19,6 +19,7 @@ final class LocationManager: NSObject, ObservableObject {
     @Published var currentLocation: CLLocation?
     @Published var region: MKCoordinateRegion
     @Published var cameraPosition: MapCameraPosition
+    @Published var locationErrorMessage: String = ""
     
     override init() {
         let initialRegion = MKCoordinateRegion(
@@ -34,11 +35,21 @@ final class LocationManager: NSObject, ObservableObject {
         
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
-        
+        updateLocationErrorMessage()
+    }
+    
+    func requestWhenInUseAuthorizationIfNeeded() {
+        guard authorizationStatus == .notDetermined else { return }
+        manager.requestWhenInUseAuthorization()
     }
     
     func requestWhenInUseAuthorization() {
         manager.requestWhenInUseAuthorization()
+    }
+    
+    func startUpdatingLocationIfAuthorized() {
+        guard isLocationAuthorized else { return }
+        manager.startUpdatingLocation()
     }
     
     func startUpdatingLocation() {
@@ -47,6 +58,11 @@ final class LocationManager: NSObject, ObservableObject {
     
     func stopUpdatingLocation() {
         manager.stopUpdatingLocation()
+    }
+    
+    func refreshAuthorizationStatus() {
+        authorizationStatus = manager.authorizationStatus
+        updateLocationErrorMessage()
     }
     
     func recenterOnUser() {
@@ -77,29 +93,46 @@ final class LocationManager: NSObject, ObservableObject {
             return "Desconocido"
         }
     }
-
+    
     var isLocationAuthorized: Bool {
         authorizationStatus == .authorizedWhenInUse || authorizationStatus == .authorizedAlways
     }
-
+    
     var canRequestLocationPermission: Bool {
         authorizationStatus == .notDetermined
     }
-
+    
     var shouldShowOpenSettings: Bool {
         authorizationStatus == .denied || authorizationStatus == .restricted
+    }
+    
+    private func updateLocationErrorMessage() {
+        switch authorizationStatus {
+        case .notDetermined:
+            locationErrorMessage = "Maply necesita acceso a tu ubicación para centrar el mapa y guardar lugares cercanos."
+        case .restricted:
+            locationErrorMessage = "El acceso a la ubicación está restringido en este dispositivo."
+        case .denied:
+            locationErrorMessage = "Has denegado el acceso a la ubicación. Puedes habilitarlo desde Ajustes."
+        case .authorizedWhenInUse, .authorizedAlways:
+            locationErrorMessage = ""
+        @unknown default:
+            locationErrorMessage = "No se pudo determinar el estado del permiso de ubicación."
+        }
     }
 }
 
 extension LocationManager: CLLocationManagerDelegate {
+    
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         authorizationStatus = manager.authorizationStatus
+        updateLocationErrorMessage()
         
         switch manager.authorizationStatus {
         case .notDetermined:
             break
         case .restricted, .denied:
-            break
+            stopUpdatingLocation()
         case .authorizedWhenInUse, .authorizedAlways:
             manager.startUpdatingLocation()
         @unknown default:
@@ -122,6 +155,7 @@ extension LocationManager: CLLocationManagerDelegate {
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        locationErrorMessage = "No se pudo obtener tu ubicación actual."
         print("Error obteniendo ubicación: \(error.localizedDescription)")
     }
 }

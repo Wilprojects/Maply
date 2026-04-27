@@ -52,9 +52,16 @@ struct MapHomeView: View {
                 
             }
             .onAppear {
+                locationManager.refreshAuthorizationStatus()
+                locationManager.requestWhenInUseAuthorizationIfNeeded()
+                locationManager.startUpdatingLocationIfAuthorized()
+            }
+            /*
+            .onAppear {
                 locationManager.requestWhenInUseAuthorization()
                 locationManager.startUpdatingLocation()
             }
+            */
             .alert("Eliminar ubicación", isPresented: $isShowingDeleteConfirmation, presenting: locationToDelete) { location in
                 Button("Cancelar", role: .cancel) { }
                 
@@ -83,6 +90,7 @@ private extension MapHomeView {
         )
     }
     
+    /*
     var mapSection: some View {
         Map(position: $locationManager.cameraPosition) {
             UserAnnotation()
@@ -101,6 +109,152 @@ private extension MapHomeView {
                 .padding(.trailing, 22)
                 .padding(.bottom, 32)
         }
+    }
+    */
+    
+    var mapSection: some View {
+        ZStack {
+            if locationManager.isLocationAuthorized {
+                authorizedMapSection
+            } else {
+                locationPermissionStateView
+            }
+        }
+        .frame(height: 272)
+        .clipped()
+    }
+    
+    var authorizedMapSection: some View {
+        Map(position: $locationManager.cameraPosition) {
+            UserAnnotation()
+            
+            ForEach(savedLocations) { location in
+                Annotation(location.name, coordinate: location.coordinate) {
+                    mapPinView(color: colorForHex(location.colorHex))
+                }
+            }
+        }
+        .mapStyle(.standard)
+        .overlay(alignment: .bottomTrailing) {
+            locationPointButton
+                .padding(.trailing, 22)
+                .padding(.bottom, 32)
+        }
+    }
+    
+    var locationPermissionStateView: some View {
+        VStack(spacing: 16) {
+            Image(systemName: permissionStateIconName)
+                .font(.system(size: 38, weight: .semibold))
+                .foregroundStyle(permissionStateColor)
+                .frame(width: 72, height: 72)
+                .background(
+                    Circle()
+                        .fill(permissionStateColor.opacity(0.14))
+                )
+            
+            VStack(spacing: 8) {
+                Text(permissionStateTitle)
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.black.opacity(0.85))
+                
+                Text(locationManager.locationErrorMessage)
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 20)
+            }
+            
+            if locationManager.canRequestLocationPermission {
+                Button {
+                    locationManager.requestWhenInUseAuthorizationIfNeeded()
+                } label: {
+                    Text("Permitir ubicación")
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .frame(height: 46)
+                        .frame(maxWidth: .infinity)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(AppColors.primaryBlue)
+                        )
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 24)
+            }
+            
+            if locationManager.shouldShowOpenSettings {
+                Button {
+                    openAppSettings()
+                } label: {
+                    Text("Abrir Ajustes")
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .frame(height: 46)
+                        .frame(maxWidth: .infinity)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(AppColors.primaryTeal)
+                        )
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 24)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            LinearGradient(
+                colors: [
+                    Color(red: 244/255, green: 245/255, blue: 246/255),
+                    Color(red: 232/255, green: 237/255, blue: 234/255)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+    }
+    
+    
+    var permissionStateTitle: String {
+        switch locationManager.authorizationStatus {
+        case .notDetermined:
+            return "Permiso pendiente"
+        case .denied:
+            return "Ubicación denegada"
+        case .restricted:
+            return "Ubicación restringida"
+        default:
+            return "Ubicación no disponible"
+        }
+    }
+
+    var permissionStateIconName: String {
+        switch locationManager.authorizationStatus {
+        case .notDetermined:
+            return "location.circle.fill"
+        case .denied:
+            return "location.slash.circle.fill"
+        case .restricted:
+            return "exclamationmark.shield.fill"
+        default:
+            return "location.slash.circle.fill"
+        }
+    }
+
+    var permissionStateColor: Color {
+        switch locationManager.authorizationStatus {
+        case .notDetermined:
+            return AppColors.primaryBlue
+        case .denied, .restricted:
+            return .red
+        default:
+            return AppColors.primaryBlue
+        }
+    }
+
+    func openAppSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
     }
     
     
