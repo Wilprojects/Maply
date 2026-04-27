@@ -6,64 +6,88 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct LocationsListView: View {
     
+    @Environment(\.modelContext) private var modelContext
+    
+    @Query(sort: \SavedLocationItem.createdAt, order: .reverse)
+    private var savedLocations: [SavedLocationItem]
+    
+    @State private var isShowingDeleteConfirmation = false
+    @State private var locationToDelete: SavedLocationItem?
+    
+    @State private var isShowingFilterDialog = false
+    @State private var selectedFilter: LocationFilter = .all
+    
+    private var filteredLocations: [SavedLocationItem] {
+        switch selectedFilter {
+        case .all:
+            return savedLocations
+        case .blue:
+            return savedLocations.filter { $0.colorHex == "blue" }
+        case .green:
+            return savedLocations.filter { $0.colorHex == "green" }
+        case .teal:
+            return savedLocations.filter { $0.colorHex == "teal" }
+        }
+    }
+    
     var body: some View {
-        
-        ZStack(alignment: .top) {
-            AppColors.pageBackground
-                .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                headerSection
+        NavigationStack {
+            ZStack(alignment: .top) {
+                AppColors.pageBackground
+                    .ignoresSafeArea()
                 
-                ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    headerSection
+                    
                     VStack(spacing: 18) {
                         sectionTitle
                         
-                        VStack(spacing: 12) {
-                            locationCard(
-                                iconColor: AppColors.primaryTeal,
-                                title: "Work Café",
-                                subtitle: "Av. Providencia 1234",
-                                category: "Favorito"
-                            )
-
-                            locationCard(
-                                iconColor: AppColors.primaryGreen,
-                                title: "Costanera Center",
-                                subtitle: "Av. Andrés Bello 2425",
-                                category: "Trabajo"
-                            )
-
-                            locationCard(
-                                iconColor: AppColors.primaryGreen,
-                                title: "Parque Bicentenario",
-                                subtitle: "Av. Bicentenario 4000",
-                                category: "Reciente"
-                            )
-
-                            locationCard(
-                                iconColor: AppColors.primaryBlue,
-                                title: "Casa",
-                                subtitle: "Calle Principal 123",
-                                category: "Guardado"
-                            )
+                        if filteredLocations.isEmpty {
+                            emptyStateView
+                        } else {
+                            locationsList
                         }
                     }
                     .padding(.horizontal, 16)
                     .padding(.top, 20)
-                    .padding(.bottom, 24)
+                    .padding(.bottom, 110)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 }
-                
             }
-            
+            .ignoresSafeArea(edges: .top)
+            .navigationBarHidden(true)
+            .alert("Eliminar ubicación", isPresented: $isShowingDeleteConfirmation, presenting: locationToDelete) { location in
+                Button("Cancelar", role: .cancel) { }
+                
+                Button("Eliminar", role: .destructive) {
+                    deleteLocation(location)
+                }
+            } message: { location in
+                Text("¿Deseas eliminar \"\(location.name)\"? Esta acción no se puede deshacer.")
+            }
+            .confirmationDialog("Filtrar ubicaciones", isPresented: $isShowingFilterDialog, titleVisibility: .visible) {
+                Button("Todas") {
+                    selectedFilter = .all
+                }
+                Button("Azules") {
+                    selectedFilter = .blue
+                }
+                Button("Verdes") {
+                    selectedFilter = .green
+                }
+                Button("Teal") {
+                    selectedFilter = .teal
+                }
+                Button("Cancelar", role: .cancel) { }
+            }
         }
-        .ignoresSafeArea(edges: .top)
-        .navigationBarHidden(true)
     }
 }
+
 
 #Preview {
     LocationsListView()
@@ -71,6 +95,13 @@ struct LocationsListView: View {
 
 
 private extension LocationsListView {
+    enum LocationFilter {
+        case all
+        case blue
+        case green
+        case teal
+    }
+    
     var headerSection: some View {
         AppHeaderView(
             subtitle: "Tus lugares",
@@ -78,58 +109,117 @@ private extension LocationsListView {
             showsFilterButton: false
         )
     }
-        
     
     var sectionTitle: some View {
         HStack {
-            Text("Ubicaciones guardadas")
-                .font(.system(size: 21, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.black.opacity(0.88))
-
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Ubicaciones guardadas")
+                    .font(.system(size: 21, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.black.opacity(0.88))
+                
+                Text(filterTitle)
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.secondaryText)
+            }
+            
             Spacer()
-
-            Image(systemName: "slider.horizontal.3")
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(Color.gray.opacity(0.8))
+            
+            Button {
+                isShowingFilterDialog = true
+            } label: {
+                Image(systemName: "slider.horizontal.3")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(Color.gray.opacity(0.8))
+                    .frame(width: 38, height: 38)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(AppColors.cardBackground.opacity(0.9))
+                    )
+            }
+            .buttonStyle(.plain)
         }
     }
     
+    var filterTitle: String {
+        switch selectedFilter {
+        case .all:
+            return "Mostrando todas"
+        case .blue:
+            return "Filtro: azules"
+        case .green:
+            return "Filtro: verdes"
+        case .teal:
+            return "Filtro: teal"
+        }
+    }
     
-    func locationCard(iconColor: Color, title: String, subtitle: String, category: String) -> some View {
-        HStack(spacing: 14) {
-            Image(systemName: "mappin.circle.fill")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 38, height: 38)
-                .foregroundStyle(iconColor, iconColor.opacity(0.18))
+    var emptyStateView: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "mappin.slash")
+                .font(.system(size: 34, weight: .semibold))
+                .foregroundStyle(AppColors.secondaryText.opacity(0.8))
             
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text(title)
+            Text("No hay ubicaciones")
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.black.opacity(0.82))
+            
+            Text("No hay resultados para el filtro seleccionado.")
+                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .foregroundStyle(AppColors.secondaryText)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 50)
+        .padding(.horizontal, 20)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(AppColors.cardBackground.opacity(0.88))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color.black.opacity(0.04), lineWidth: 1)
+                )
+        )
+    }
+    
+    var locationsList: some View {
+        List {
+            ForEach(filteredLocations) { location in
+                locationCard(location: location)
+                    .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+            }
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(Color.clear)
+    }
+    
+    func locationCard(location: SavedLocationItem) -> some View {
+        NavigationLink {
+            LocationDetailView(location: location)
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: "mappin.circle.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 38, height: 38)
+                    .foregroundStyle(colorForHex(location.colorHex), colorForHex(location.colorHex).opacity(0.18))
+                
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(location.name)
                         .font(.system(size: 18, weight: .bold, design: .rounded))
                         .foregroundStyle(Color.black.opacity(0.82))
-
-                    Spacer()
-
-                    Text(category)
-                        .font(.system(size: 12, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(
-                            Capsule()
-                                .fill(iconColor.opacity(0.9))
-                        )
+                        .lineLimit(1)
+                    
+                    Text(location.address)
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundStyle(AppColors.secondaryText.opacity(0.95))
+                        .lineLimit(1)
                 }
-
-                Text(subtitle)
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
-                    .foregroundStyle(AppColors.secondaryText.opacity(0.95))
+                
+                Spacer()
             }
-            
-            Image(systemName: "chevron.right")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(Color.gray.opacity(0.7))
 
         }
         .padding(16)
@@ -142,5 +232,36 @@ private extension LocationsListView {
                 )
                 .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 4)
         )
+        .buttonStyle(.plain)
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button(role: .destructive) {
+                confirmDeleteLocation(location)
+            } label: {
+                Label("Eliminar", systemImage: "trash")
+            }
+        }
+    }
+    
+    func colorForHex(_ colorHex: String) -> Color {
+        switch colorHex {
+        case "teal":
+            return AppColors.primaryTeal
+        case "green":
+            return AppColors.primaryGreen
+        case "blue":
+            return AppColors.primaryBlue
+        default:
+            return AppColors.primaryBlue
+        }
+    }
+    
+    func confirmDeleteLocation(_ location: SavedLocationItem) {
+        locationToDelete = location
+        isShowingDeleteConfirmation = true
+    }
+    
+    func deleteLocation(_ location: SavedLocationItem) {
+        modelContext.delete(location)
+        locationToDelete = nil
     }
 }

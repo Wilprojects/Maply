@@ -10,14 +10,28 @@ import MapKit
 
 struct LocationDetailView: View {
     let location: SavedLocationItem
+    @State private var cameraPosition: MapCameraPosition
+    
+    init(location: SavedLocationItem) {
+        self.location = location
+        
+        let region = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(
+                latitude: location.latitude,
+                longitude: location.longitude
+            ),
+            span: MKCoordinateSpan(latitudeDelta: 0.005, longitudeDelta: 0.005)
+        )
+        
+        _cameraPosition = State(initialValue: .region(region))
+    }
     
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
                 headerCard
-                
+                miniMapCard
                 infoCard
-                
                 coordinatesCard
             }
             .padding(16)
@@ -63,6 +77,33 @@ private extension LocationDetailView {
         }
         .frame(maxWidth: .infinity)
         .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(AppColors.cardBackground.opacity(0.92))
+        )
+    }
+    
+    var miniMapCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Ubicación en el mapa")
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.black.opacity(0.85))
+            
+            Map(position: $cameraPosition) {
+                Annotation(location.name, coordinate: location.coordinate) {
+                    Image(systemName: "mappin.circle.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 36, height: 36)
+                        .foregroundStyle(colorForHex(location.colorHex), colorForHex(location.colorHex).opacity(0.18))
+                }
+            }
+            .mapStyle(.standard)
+            .frame(height: 220)
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .fill(AppColors.cardBackground.opacity(0.92))
