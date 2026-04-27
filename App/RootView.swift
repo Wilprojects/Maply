@@ -8,16 +8,14 @@
 import SwiftUI
 
 struct RootView: View {
-    
-    @State private var isLoggedIn: Bool = false
+    @StateObject private var authViewModel = AuthViewModel()
     
     var body: some View {
         Group {
-            if isLoggedIn {
-                //HomeView(isLoggedIn: $isLoggedIn)
-                MainTabView(isLoggedIn: $isLoggedIn)
+            if authViewModel.isLoggedIn {
+                MainTabView(authViewModel: authViewModel)
             } else {
-                LoginView(isLoggedIn: $isLoggedIn)
+                LoginView(isLoggedIn: $authViewModel.isLoggedIn)
             }
         }
     }

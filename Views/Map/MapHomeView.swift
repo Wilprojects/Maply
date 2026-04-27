@@ -79,7 +79,7 @@ private extension MapHomeView {
         AppHeaderView(
             subtitle: "Bienvenido a Maply",
             title: "Wilder",
-            showsFilterButton: true
+            showsFilterButton: false
         )
     }
     

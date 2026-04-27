@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @Binding var isLoggedIn: Bool
+    //@Binding var isLoggedIn: Bool
+    @ObservedObject var authViewModel: AuthViewModel
     
     @AppStorage("selectedTheme") private var selectedThemeRawValue: String = ThemeOption.system.rawValue
     @AppStorage("notificationsEnabled") private var notificationsEnabled: Bool = true
@@ -65,7 +66,7 @@ struct SettingsView: View {
             .alert("Cerrar sesión", isPresented: $isShowingLogoutConfirmation) {
                 Button("Cancelar", role: .cancel) { }
                 Button("Cerrar sesión", role: .destructive) {
-                    isLoggedIn = false
+                    authViewModel.logout()
                 }
             } message: {
                 Text("¿Deseas cerrar tu sesión en Maply?")
@@ -75,7 +76,7 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView(isLoggedIn: .constant(true))
+    SettingsView(authViewModel: AuthViewModel())
 }
 
 private extension SettingsView {
@@ -110,7 +111,7 @@ private extension SettingsView {
                     .font(.system(size: 20, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.black.opacity(0.85))
                 
-                Text("user@maply.com")
+                Text(authViewModel.email.isEmpty ? "user@maply.com" : authViewModel.email)
                     .font(.system(size: 14, weight: .medium, design: .rounded))
                     .foregroundStyle(AppColors.secondaryText)
             }

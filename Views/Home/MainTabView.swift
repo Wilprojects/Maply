@@ -9,15 +9,14 @@ import SwiftUI
 
 struct MainTabView: View {
     
-    @Binding var isLoggedIn: Bool
+    @ObservedObject var authViewModel: AuthViewModel
     @State private var selectedTab: AppTab = .map
     
     var body: some View {
-        ZStack(alignment: .bottom) {
+        VStack(spacing: 0) {
             currentScreen
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(AppColors.pageBackground)
-                .ignoresSafeArea(edges: .top)
             
             customTabBar
         }
@@ -33,13 +32,13 @@ struct MainTabView: View {
         case .locations:
             LocationsListView()
         case .settings:
-            SettingsView(isLoggedIn: $isLoggedIn)
+            SettingsView(authViewModel: authViewModel)
         }
     }
 }
 
 #Preview {
-    MainTabView(isLoggedIn: .constant(true))
+    MainTabView(authViewModel: AuthViewModel())
 }
 
 
