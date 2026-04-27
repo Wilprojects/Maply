@@ -17,9 +17,24 @@ final class AuthViewModel: ObservableObject {
     @Published var errorMessage: String = ""
     @Published var isLoggedIn: Bool = false
     
+    var trimmedEmail: String {
+        email.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
+    var trimmedPassword: String {
+        password.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
     var isFormValid: Bool {
-        !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !password.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        !trimmedEmail.isEmpty && !trimmedPassword.isEmpty
+    }
+    
+    var shouldShowEmailError: Bool {
+        !errorMessage.isEmpty && trimmedEmail.isEmpty
+    }
+    
+    var shouldShowPasswordError: Bool {
+        !errorMessage.isEmpty && trimmedPassword.isEmpty
     }
     
     init() {
@@ -29,8 +44,18 @@ final class AuthViewModel: ObservableObject {
     func login() {
         errorMessage = ""
         
-        guard isFormValid else {
-            errorMessage = "Completa correo y contraseña."
+        guard !trimmedEmail.isEmpty else {
+            errorMessage = "Ingresa tu correo electrónico."
+            return
+        }
+        
+        guard !trimmedPassword.isEmpty else {
+            errorMessage = "Ingresa tu contraseña."
+            return
+        }
+        
+        guard isValidEmail(trimmedEmail) else {
+            errorMessage = "Ingresa un correo válido."
             return
         }
         
@@ -39,19 +64,20 @@ final class AuthViewModel: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
             self.isLoading = false
             
-            if self.email == "demo@maply.com" && self.password == "123456" {
+            if self.trimmedEmail.lowercased() == "demo@maply.com" && self.trimmedPassword == "123456" {
                 let fakeToken = UUID().uuidString
                 
                 let tokenSaved = KeychainService.shared.save(fakeToken, forKey: KeychainKeys.authToken)
-                let emailSaved = KeychainService.shared.save(self.email, forKey: KeychainKeys.userEmail)
+                let emailSaved = KeychainService.shared.save(self.trimmedEmail, forKey: KeychainKeys.userEmail)
                 
                 if tokenSaved && emailSaved {
+                    self.errorMessage = ""
                     self.isLoggedIn = true
                 } else {
                     self.errorMessage = "No se pudo guardar la sesión de forma segura."
                 }
             } else {
-                self.errorMessage = "Credenciales inválidas."
+                self.errorMessage = "Correo o contraseña incorrectos."
             }
         }
     }
@@ -62,6 +88,7 @@ final class AuthViewModel: ObservableObject {
         
         email = ""
         password = ""
+        errorMessage = ""
         isLoggedIn = false
     }
     
@@ -71,5 +98,16 @@ final class AuthViewModel: ObservableObject {
             email = KeychainService.shared.read(forKey: KeychainKeys.userEmail) ?? ""
             isLoggedIn = true
         }
+    }
+    
+    func clearErrorOnInput() {
+        if !errorMessage.isEmpty {
+            errorMessage = ""
+        }
+    }
+    
+    private func isValidEmail(_ email: String) -> Bool {
+        let regex = #"^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
+        return email.range(of: regex, options: .regularExpression) != nil
     }
 }

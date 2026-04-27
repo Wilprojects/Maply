@@ -15,7 +15,7 @@ struct RootView: View {
             if authViewModel.isLoggedIn {
                 MainTabView(authViewModel: authViewModel)
             } else {
-                LoginView(isLoggedIn: $authViewModel.isLoggedIn)
+                LoginView(viewModel: authViewModel)
             }
         }
     }
