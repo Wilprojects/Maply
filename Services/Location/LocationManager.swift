@@ -60,6 +60,35 @@ final class LocationManager: NSObject, ObservableObject {
         region = updatedRegion
         cameraPosition = .region(updatedRegion)
     }
+    
+    var authorizationStatusText: String {
+        switch authorizationStatus {
+        case .notDetermined:
+            return "No solicitado"
+        case .restricted:
+            return "Restringido"
+        case .denied:
+            return "Denegado"
+        case .authorizedWhenInUse:
+            return "Permitido al usar la app"
+        case .authorizedAlways:
+            return "Permitido siempre"
+        @unknown default:
+            return "Desconocido"
+        }
+    }
+
+    var isLocationAuthorized: Bool {
+        authorizationStatus == .authorizedWhenInUse || authorizationStatus == .authorizedAlways
+    }
+
+    var canRequestLocationPermission: Bool {
+        authorizationStatus == .notDetermined
+    }
+
+    var shouldShowOpenSettings: Bool {
+        authorizationStatus == .denied || authorizationStatus == .restricted
+    }
 }
 
 extension LocationManager: CLLocationManagerDelegate {
