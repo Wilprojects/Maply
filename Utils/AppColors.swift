@@ -15,4 +15,8 @@ enum AppColors {
     static let pageBackground = Color("PageBackground")
     static let cardBackground = Color("CardBackground")
     static let secondaryText = Color("SecondaryText")
+    static let primaryText = Color("PrimaryText")
+    static let mutedText = Color("MutedText")
+    static let dividerColor = Color("DividerColor")
+    static let inputBackground = Color("InputBackground")
 }

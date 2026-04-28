@@ -42,12 +42,13 @@ struct PrivacyView: View {
     }
 }
 
+
 private extension PrivacyView {
     var statusCard: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Permiso de ubicación")
                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.black.opacity(0.85))
+                .foregroundStyle(AppColors.primaryText)
             
             HStack(spacing: 12) {
                 Image(systemName: iconNameForStatus)
@@ -62,7 +63,7 @@ private extension PrivacyView {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(locationManager.authorizationStatusText)
                         .font(.system(size: 17, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.black.opacity(0.82))
+                        .foregroundStyle(AppColors.primaryText.opacity(0.95))
                     
                     Text(statusDescription)
                         .font(.system(size: 14, weight: .medium, design: .rounded))
@@ -74,7 +75,11 @@ private extension PrivacyView {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(AppColors.cardBackground.opacity(0.92))
+                .fill(AppColors.cardBackground.opacity(0.96))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(AppColors.dividerColor, lineWidth: 1)
+                )
         )
     }
     
@@ -82,17 +87,21 @@ private extension PrivacyView {
         VStack(alignment: .leading, spacing: 14) {
             Text("Uso de la ubicación")
                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.black.opacity(0.85))
+                .foregroundStyle(AppColors.primaryText)
             
             Text("Maply utiliza tu ubicación para centrar el mapa en tu posición actual, mostrar tu ubicación en pantalla y permitirte guardar lugares cercanos en el dispositivo.")
                 .font(.system(size: 15, weight: .medium, design: .rounded))
-                .foregroundStyle(Color.black.opacity(0.78))
+                .foregroundStyle(AppColors.primaryText.opacity(0.88))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(AppColors.cardBackground.opacity(0.92))
+                .fill(AppColors.cardBackground.opacity(0.96))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(AppColors.dividerColor, lineWidth: 1)
+                )
         )
     }
     
@@ -100,11 +109,10 @@ private extension PrivacyView {
         VStack(alignment: .leading, spacing: 14) {
             Text("Acciones")
                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.black.opacity(0.85))
+                .foregroundStyle(AppColors.primaryText)
             
             if locationManager.canRequestLocationPermission {
                 Button {
-                    //locationManager.requestWhenInUseAuthorization()
                     locationManager.requestWhenInUseAuthorizationIfNeeded()
                 } label: {
                     actionButtonLabel(
@@ -131,7 +139,7 @@ private extension PrivacyView {
             
             if locationManager.isLocationAuthorized {
                 Button {
-                    locationManager.startUpdatingLocation()
+                    locationManager.startUpdatingLocationIfAuthorized()
                 } label: {
                     actionButtonLabel(
                         title: "Actualizar ubicación",
@@ -146,7 +154,11 @@ private extension PrivacyView {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(AppColors.cardBackground.opacity(0.92))
+                .fill(AppColors.cardBackground.opacity(0.96))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(AppColors.dividerColor, lineWidth: 1)
+                )
         )
     }
     
@@ -163,7 +175,7 @@ private extension PrivacyView {
             
             Text(title)
                 .font(.system(size: 16, weight: .semibold, design: .rounded))
-                .foregroundStyle(Color.black.opacity(0.82))
+                .foregroundStyle(AppColors.primaryText.opacity(0.95))
             
             Spacer()
         }
@@ -171,10 +183,10 @@ private extension PrivacyView {
         .padding(.vertical, 14)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color.white.opacity(0.8))
+                .fill(AppColors.cardBackground.opacity(0.96))
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(Color.black.opacity(0.04), lineWidth: 1)
+                        .stroke(AppColors.dividerColor, lineWidth: 1)
                 )
         )
     }

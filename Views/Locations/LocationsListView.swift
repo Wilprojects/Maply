@@ -88,11 +88,9 @@ struct LocationsListView: View {
     }
 }
 
-
 #Preview {
     LocationsListView()
 }
-
 
 private extension LocationsListView {
     enum LocationFilter {
@@ -115,7 +113,7 @@ private extension LocationsListView {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Ubicaciones guardadas")
                     .font(.system(size: 21, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color.black.opacity(0.88))
+                    .foregroundStyle(AppColors.primaryText)
                 
                 Text(filterTitle)
                     .font(.system(size: 13, weight: .medium, design: .rounded))
@@ -129,11 +127,15 @@ private extension LocationsListView {
             } label: {
                 Image(systemName: "slider.horizontal.3")
                     .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(Color.gray.opacity(0.8))
+                    .foregroundStyle(AppColors.mutedText)
                     .frame(width: 38, height: 38)
                     .background(
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(AppColors.cardBackground.opacity(0.9))
+                            .fill(AppColors.cardBackground.opacity(0.96))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(AppColors.dividerColor, lineWidth: 1)
+                            )
                     )
             }
             .buttonStyle(.plain)
@@ -161,7 +163,7 @@ private extension LocationsListView {
             
             Text("No hay ubicaciones")
                 .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.black.opacity(0.82))
+                .foregroundStyle(AppColors.primaryText.opacity(0.95))
             
             Text("No hay resultados para el filtro seleccionado.")
                 .font(.system(size: 14, weight: .medium, design: .rounded))
@@ -173,10 +175,10 @@ private extension LocationsListView {
         .padding(.horizontal, 20)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(AppColors.cardBackground.opacity(0.88))
+                .fill(AppColors.cardBackground.opacity(0.96))
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(Color.black.opacity(0.04), lineWidth: 1)
+                        .stroke(AppColors.dividerColor, lineWidth: 1)
                 )
         )
     }
@@ -209,26 +211,25 @@ private extension LocationsListView {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(location.name)
                         .font(.system(size: 18, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.black.opacity(0.82))
+                        .foregroundStyle(AppColors.primaryText.opacity(0.95))
                         .lineLimit(1)
                     
                     Text(location.address)
                         .font(.system(size: 14, weight: .medium, design: .rounded))
-                        .foregroundStyle(AppColors.secondaryText.opacity(0.95))
+                        .foregroundStyle(AppColors.secondaryText)
                         .lineLimit(1)
                 }
                 
                 Spacer()
             }
-
         }
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(AppColors.cardBackground.opacity(0.88))
+                .fill(AppColors.cardBackground.opacity(0.96))
                 .overlay(
                     RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .stroke(Color.black.opacity(0.04), lineWidth: 1)
+                        .stroke(AppColors.dividerColor, lineWidth: 1)
                 )
                 .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 4)
         )

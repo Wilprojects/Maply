@@ -14,7 +14,7 @@ struct MapHomeView: View {
     @StateObject private var locationManager = LocationManager()
     
     @Environment(\.modelContext) private var modelContext
-
+    
     @Query(sort: \SavedLocationItem.createdAt, order: .reverse)
     private var savedLocations: [SavedLocationItem]
     
@@ -26,8 +26,7 @@ struct MapHomeView: View {
     @State private var locationToDelete: SavedLocationItem?
     
     var body: some View {
-        
-        NavigationStack{
+        NavigationStack {
             GeometryReader { geometry in
                 ZStack(alignment: .top) {
                     AppColors.pageBackground
@@ -36,12 +35,8 @@ struct MapHomeView: View {
                     VStack(spacing: 0) {
                         headerSection
                         mapSection
-                        locationCardSection(
-                            availableHeight: geometry.size.height
-                        )
-                        //Spacer(minLength: 0)
+                        locationCardSection(availableHeight: geometry.size.height)
                     }
-                    //.padding(.bottom, 34)
                     
                     if isShowingSaveLocationSheet {
                         saveLocationPopup
@@ -49,19 +44,12 @@ struct MapHomeView: View {
                 }
                 .ignoresSafeArea(edges: .top)
                 .navigationBarHidden(true)
-                
             }
             .onAppear {
                 locationManager.refreshAuthorizationStatus()
                 locationManager.requestWhenInUseAuthorizationIfNeeded()
                 locationManager.startUpdatingLocationIfAuthorized()
             }
-            /*
-            .onAppear {
-                locationManager.requestWhenInUseAuthorization()
-                locationManager.startUpdatingLocation()
-            }
-            */
             .alert("Eliminar ubicación", isPresented: $isShowingDeleteConfirmation, presenting: locationToDelete) { location in
                 Button("Cancelar", role: .cancel) { }
                 
@@ -72,7 +60,6 @@ struct MapHomeView: View {
             } message: { location in
                 Text("¿Deseas eliminar \"\(location.name)\"? Esta acción no se puede deshacer.")
             }
-            
         }
     }
 }
@@ -80,6 +67,7 @@ struct MapHomeView: View {
 #Preview {
     MapHomeView()
 }
+
 
 private extension MapHomeView {
     var headerSection: some View {
@@ -89,28 +77,6 @@ private extension MapHomeView {
             showsFilterButton: false
         )
     }
-    
-    /*
-    var mapSection: some View {
-        Map(position: $locationManager.cameraPosition) {
-            UserAnnotation()
-            
-            ForEach(savedLocations) { location in
-                Annotation(location.name, coordinate: location.coordinate) {
-                    mapPinView(color: colorForHex(location.colorHex))
-                }
-            }
-        }
-        .mapStyle(.standard)
-        .frame(height: 272)
-        .clipped()
-        .overlay(alignment: .bottomTrailing) {
-            locationPointButton
-                .padding(.trailing, 22)
-                .padding(.bottom, 32)
-        }
-    }
-    */
     
     var mapSection: some View {
         ZStack {
@@ -156,7 +122,7 @@ private extension MapHomeView {
             VStack(spacing: 8) {
                 Text(permissionStateTitle)
                     .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color.black.opacity(0.85))
+                    .foregroundStyle(AppColors.primaryText)
                 
                 Text(locationManager.locationErrorMessage)
                     .font(.system(size: 14, weight: .medium, design: .rounded))
@@ -202,18 +168,19 @@ private extension MapHomeView {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(
-            LinearGradient(
-                colors: [
-                    Color(red: 244/255, green: 245/255, blue: 246/255),
-                    Color(red: 232/255, green: 237/255, blue: 234/255)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        )
+        .background(permissionBackgroundGradient)
     }
     
+    var permissionBackgroundGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                AppColors.inputBackground,
+                AppColors.cardBackground
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
     
     var permissionStateTitle: String {
         switch locationManager.authorizationStatus {
@@ -227,7 +194,7 @@ private extension MapHomeView {
             return "Ubicación no disponible"
         }
     }
-
+    
     var permissionStateIconName: String {
         switch locationManager.authorizationStatus {
         case .notDetermined:
@@ -240,7 +207,7 @@ private extension MapHomeView {
             return "location.slash.circle.fill"
         }
     }
-
+    
     var permissionStateColor: Color {
         switch locationManager.authorizationStatus {
         case .notDetermined:
@@ -251,12 +218,11 @@ private extension MapHomeView {
             return AppColors.primaryBlue
         }
     }
-
+    
     func openAppSettings() {
         guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
         UIApplication.shared.open(url)
     }
-    
     
     func locationCardSection(availableHeight: CGFloat) -> some View {
         let headerHeight: CGFloat = 165
@@ -272,14 +238,14 @@ private extension MapHomeView {
             HStack {
                 Text("Mi Ubicación")
                     .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color.black.opacity(0.92))
+                    .foregroundStyle(AppColors.primaryText)
                 
                 Spacer()
                 
                 HStack(spacing: 6) {
-                    Circle().fill(Color.gray.opacity(0.55)).frame(width: 6, height: 6)
-                    Circle().fill(Color.gray.opacity(0.55)).frame(width: 6, height: 6)
-                    Circle().fill(Color.gray.opacity(0.55)).frame(width: 6, height: 6)
+                    Circle().fill(AppColors.mutedText.opacity(0.55)).frame(width: 6, height: 6)
+                    Circle().fill(AppColors.mutedText.opacity(0.55)).frame(width: 6, height: 6)
+                    Circle().fill(AppColors.mutedText.opacity(0.55)).frame(width: 6, height: 6)
                 }
             }
             .padding(.top, 2)
@@ -311,19 +277,19 @@ private extension MapHomeView {
         )
         .offset(y: -18)
     }
-    
 }
 
+
 private extension MapHomeView {
-    var locationPointButton: some View{
+    var locationPointButton: some View {
         Button {
             locationManager.recenterOnUser()
         } label: {
             Image(systemName: "location.north.fill")
                 .font(.system(size: 22, weight: .bold))
-                .foregroundStyle(.red, .gray.opacity(0.2))
+                .foregroundStyle(.red, AppColors.mutedText.opacity(0.2))
                 .frame(width: 66, height: 66)
-                .background(.white)
+                .background(AppColors.cardBackground)
                 .clipShape(Circle())
                 .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 6)
         }
@@ -338,7 +304,6 @@ private extension MapHomeView {
             .shadow(color: .black.opacity(0.14), radius: 4, x: 0, y: 2)
     }
 }
-
 
 private extension MapHomeView {
     func locationRow(location: SavedLocationItem) -> some View {
@@ -355,27 +320,26 @@ private extension MapHomeView {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(location.name)
                         .font(.system(size: 17, weight: .semibold, design: .rounded))
-                        .foregroundStyle(Color.black.opacity(0.80))
+                        .foregroundStyle(AppColors.primaryText.opacity(0.95))
                         .lineLimit(1)
                     
                     Text(location.address)
                         .font(.system(size: 13.5, weight: .medium, design: .rounded))
-                        .foregroundStyle(Color.gray.opacity(0.95))
+                        .foregroundStyle(AppColors.secondaryText)
                         .lineLimit(1)
                 }
                 
                 Spacer()
             }
-            
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 13)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color.white.opacity(0.84))
+                .fill(AppColors.cardBackground.opacity(0.96))
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(Color.black.opacity(0.04), lineWidth: 1)
+                        .stroke(AppColors.dividerColor, lineWidth: 1)
                 )
         )
         .buttonStyle(.plain)
@@ -388,21 +352,20 @@ private extension MapHomeView {
         }
     }
     
-    
     var saveLocationSection: some View {
         HStack(spacing: 10) {
             ZStack {
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(Color.white.opacity(0.90))
+                    .fill(AppColors.cardBackground.opacity(0.96))
                     .frame(width: 60, height: 52)
-
+                
                 Image(systemName: "mappin.circle.fill")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 30, height: 30)
                     .foregroundStyle(AppColors.primaryBlue, AppColors.primaryBlue.opacity(0.18))
             }
-
+            
             Button {
                 locationName = ""
                 locationAddress = ""
@@ -410,13 +373,13 @@ private extension MapHomeView {
             } label: {
                 HStack {
                     Spacer()
-
+                    
                     Text("Guardar ubicación")
                         .font(.system(size: 17, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
-
+                    
                     Spacer()
-
+                    
                     Image(systemName: "chevron.right")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(.white.opacity(0.96))
@@ -425,7 +388,7 @@ private extension MapHomeView {
                 .frame(height: 52)
                 .background(
                     LinearGradient(
-                        colors: [Color(red: 0.26, green: 0.55, blue: 0.95), AppColors.primaryBlue],
+                        colors: [AppColors.primaryTeal, AppColors.primaryBlue],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
@@ -438,12 +401,12 @@ private extension MapHomeView {
     
     func saveCurrentLocation(name: String, address: String) {
         guard let location = locationManager.currentLocation else { return }
-            
+        
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedAddress = address.trimmingCharacters(in: .whitespacesAndNewlines)
         
         guard !trimmedName.isEmpty, !trimmedAddress.isEmpty else { return }
-            
+        
         let newLocation = SavedLocationItem(
             name: trimmedName,
             address: trimmedAddress,
@@ -454,7 +417,6 @@ private extension MapHomeView {
         
         modelContext.insert(newLocation)
     }
-    
     
     func colorForHex(_ colorHex: String) -> Color {
         switch colorHex {
@@ -480,6 +442,7 @@ private extension MapHomeView {
     }
 }
 
+
 private extension MapHomeView {
     var saveLocationPopup: some View {
         ZStack {
@@ -490,23 +453,35 @@ private extension MapHomeView {
                 }
             
             VStack(spacing: 20) {
-                
                 Text("Nueva ubicación")
                     .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.primaryText)
                 
                 VStack(spacing: 12) {
                     TextField("Nombre de la ubicación", text: $locationName)
                         .padding()
+                        .foregroundStyle(AppColors.primaryText)
+                        .tint(AppColors.primaryBlue)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(AppColors.cardBackground)
+                                .fill(AppColors.inputBackground)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(AppColors.dividerColor, lineWidth: 1)
                         )
                     
                     TextField("Dirección o referencia", text: $locationAddress)
                         .padding()
+                        .foregroundStyle(AppColors.primaryText)
+                        .tint(AppColors.primaryBlue)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(AppColors.cardBackground)
+                                .fill(AppColors.inputBackground)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(AppColors.dividerColor, lineWidth: 1)
                         )
                 }
                 
@@ -515,23 +490,34 @@ private extension MapHomeView {
                         isShowingSaveLocationSheet = false
                     } label: {
                         Text("Cancelar")
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AppColors.primaryText)
                             .frame(maxWidth: .infinity)
                             .frame(height: 44)
-                            .background(Color.gray.opacity(0.2))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(AppColors.cardBackground)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(AppColors.dividerColor, lineWidth: 1)
+                                    )
+                            )
                     }
+                    .buttonStyle(.plain)
                     
                     Button {
                         saveCurrentLocation(name: locationName, address: locationAddress)
                         isShowingSaveLocationSheet = false
                     } label: {
                         Text("Guardar")
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 44)
                             .background(AppColors.primaryBlue)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
+                    .buttonStyle(.plain)
                     .disabled(
                         locationName.trimmingCharacters(in: .whitespaces).isEmpty ||
                         locationAddress.trimmingCharacters(in: .whitespaces).isEmpty

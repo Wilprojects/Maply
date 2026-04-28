@@ -68,7 +68,7 @@ private extension LocationDetailView {
             
             Text(location.name)
                 .font(.system(size: 26, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.black.opacity(0.85))
+                .foregroundStyle(AppColors.primaryText)
             
             Text(location.address)
                 .font(.system(size: 16, weight: .medium, design: .rounded))
@@ -79,7 +79,11 @@ private extension LocationDetailView {
         .padding(24)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(AppColors.cardBackground.opacity(0.92))
+                .fill(AppColors.cardBackground.opacity(0.96))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(AppColors.dividerColor, lineWidth: 1)
+                )
         )
     }
     
@@ -87,7 +91,7 @@ private extension LocationDetailView {
         VStack(alignment: .leading, spacing: 14) {
             Text("Ubicación en el mapa")
                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.black.opacity(0.85))
+                .foregroundStyle(AppColors.primaryText)
             
             Map(position: $cameraPosition) {
                 Annotation(location.name, coordinate: location.coordinate) {
@@ -106,7 +110,11 @@ private extension LocationDetailView {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(AppColors.cardBackground.opacity(0.92))
+                .fill(AppColors.cardBackground.opacity(0.96))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(AppColors.dividerColor, lineWidth: 1)
+                )
         )
     }
     
@@ -114,7 +122,7 @@ private extension LocationDetailView {
         VStack(alignment: .leading, spacing: 14) {
             Text("Información")
                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.black.opacity(0.85))
+                .foregroundStyle(AppColors.primaryText)
             
             detailRow(title: "Nombre", value: location.name)
             detailRow(title: "Dirección", value: location.address)
@@ -124,7 +132,11 @@ private extension LocationDetailView {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(AppColors.cardBackground.opacity(0.92))
+                .fill(AppColors.cardBackground.opacity(0.96))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(AppColors.dividerColor, lineWidth: 1)
+                )
         )
     }
     
@@ -132,7 +144,7 @@ private extension LocationDetailView {
         VStack(alignment: .leading, spacing: 14) {
             Text("Coordenadas")
                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.black.opacity(0.85))
+                .foregroundStyle(AppColors.primaryText)
             
             detailRow(
                 title: "Latitud",
@@ -148,7 +160,11 @@ private extension LocationDetailView {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(AppColors.cardBackground.opacity(0.92))
+                .fill(AppColors.cardBackground.opacity(0.96))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(AppColors.dividerColor, lineWidth: 1)
+                )
         )
     }
     
@@ -160,7 +176,7 @@ private extension LocationDetailView {
             
             Text(value)
                 .font(.system(size: 17, weight: .medium, design: .rounded))
-                .foregroundStyle(Color.black.opacity(0.82))
+                .foregroundStyle(AppColors.primaryText.opacity(0.95))
         }
     }
     

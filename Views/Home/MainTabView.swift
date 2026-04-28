@@ -41,7 +41,6 @@ struct MainTabView: View {
     MainTabView(authViewModel: AuthViewModel())
 }
 
-
 private extension MainTabView {
     var customTabBar: some View {
         VStack(spacing: 0) {
@@ -82,7 +81,7 @@ private extension MainTabView {
                 AppColors.darkSurface
                 
                 Rectangle()
-                    .fill(Color.black.opacity(0.72))
+                    .fill(Color.white.opacity(0.22))
                     .frame(width: 134, height: 5)
                     .clipShape(Capsule())
             }
@@ -92,14 +91,11 @@ private extension MainTabView {
         .background(AppColors.darkSurface)
     }
     
-    
     var verticalDivider: some View {
         Rectangle()
-            .fill(Color.white.opacity(0.14))
+            .fill(Color.white.opacity(0.12))
             .frame(width: 1, height: 30)
     }
-    
-
     
     func tabItemView(tab: AppTab, icon: String, title: String, activeColor: Color) -> some View {
         let isSelected = selectedTab == tab
@@ -113,7 +109,7 @@ private extension MainTabView {
                 Image(systemName: icon)
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(isSelected ? activeColor : Color.white.opacity(0.78))
-
+                
                 Text(title)
                     .font(.system(size: 12, weight: isSelected ? .semibold : .medium, design: .rounded))
                     .foregroundStyle(Color.white.opacity(isSelected ? 1.0 : 0.78))
@@ -124,7 +120,6 @@ private extension MainTabView {
         }
         .buttonStyle(.plain)
     }
-    
 }
 
 enum AppTab {

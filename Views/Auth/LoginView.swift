@@ -13,7 +13,7 @@ struct LoginView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(.systemGroupedBackground)
+                AppColors.pageBackground
                     .ignoresSafeArea()
                 
                 VStack(spacing: 24) {
@@ -28,11 +28,11 @@ struct LoginView: View {
                         
                         Text("Maply")
                             .font(.system(size: 44, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color(.label))
+                            .foregroundStyle(AppColors.primaryText)
                         
                         Text("Accede para continuar.")
                             .font(.title3)
-                            .foregroundStyle(Color(.secondaryLabel))
+                            .foregroundStyle(AppColors.secondaryText)
                     }
                     
                     VStack(spacing: 16) {
@@ -47,7 +47,7 @@ struct LoginView: View {
                         Button("¿Olvidaste tu contraseña?") {
                         }
                         .font(.subheadline)
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(AppColors.primaryBlue)
                         .padding(.top, 8)
                     }
                     .padding(.horizontal, 24)
@@ -57,7 +57,7 @@ struct LoginView: View {
                     Text("Al continuar, aceptas nuestros Términos y Condiciones y Política de Privacidad.")
                         .font(.footnote)
                         .multilineTextAlignment(.center)
-                        .foregroundStyle(Color(.secondaryLabel))
+                        .foregroundStyle(AppColors.secondaryText)
                         .padding(.horizontal, 32)
                         .padding(.bottom, 24)
                 }
@@ -76,12 +76,14 @@ private extension LoginView {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
                 Image(systemName: "envelope")
-                    .foregroundStyle(.gray)
+                    .foregroundStyle(AppColors.mutedText)
                 
                 TextField("Correo electrónico", text: $viewModel.email)
                     .keyboardType(.emailAddress)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
+                    .foregroundStyle(AppColors.primaryText)
+                    .tint(AppColors.primaryBlue)
                     .onChange(of: viewModel.email) { _, _ in
                         viewModel.clearErrorOnInput()
                     }
@@ -89,10 +91,11 @@ private extension LoginView {
             .padding()
             
             Divider()
+                .overlay(AppColors.dividerColor)
             
             HStack(spacing: 12) {
                 Image(systemName: "lock")
-                    .foregroundStyle(.gray)
+                    .foregroundStyle(AppColors.mutedText)
                 
                 Group {
                     if viewModel.isPasswordVisible {
@@ -101,6 +104,8 @@ private extension LoginView {
                         SecureField("Contraseña", text: $viewModel.password)
                     }
                 }
+                .foregroundStyle(AppColors.primaryText)
+                .tint(AppColors.primaryBlue)
                 .onChange(of: viewModel.password) { _, _ in
                     viewModel.clearErrorOnInput()
                 }
@@ -109,11 +114,11 @@ private extension LoginView {
                     viewModel.isPasswordVisible.toggle()
                 }
                 .font(.subheadline)
-                .foregroundStyle(.blue)
+                .foregroundStyle(AppColors.primaryBlue)
             }
             .padding()
         }
-        .background(Color(.secondarySystemBackground))
+        .background(AppColors.inputBackground)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
@@ -135,11 +140,11 @@ private extension LoginView {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.red.opacity(0.08))
+                .fill(Color.red.opacity(0.10))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(Color.red.opacity(0.15), lineWidth: 1)
+                .stroke(Color.red.opacity(0.20), lineWidth: 1)
         )
     }
     
@@ -152,8 +157,8 @@ private extension LoginView {
                     .fill(
                         LinearGradient(
                             colors: [
-                                Color(red: 0.33, green: 0.76, blue: 0.92),
-                                Color(red: 0.27, green: 0.56, blue: 0.96)
+                                AppColors.primaryTeal,
+                                AppColors.primaryBlue
                             ],
                             startPoint: .leading,
                             endPoint: .trailing
@@ -173,6 +178,7 @@ private extension LoginView {
                 }
             }
         }
+        .buttonStyle(.plain)
         .disabled(!viewModel.isFormValid || viewModel.isLoading)
         .opacity((!viewModel.isFormValid || viewModel.isLoading) ? 0.7 : 1)
     }
@@ -183,7 +189,7 @@ private extension LoginView {
         } else if !viewModel.errorMessage.isEmpty {
             return Color.red.opacity(0.45)
         } else {
-            return Color.black.opacity(0.05)
+            return AppColors.dividerColor
         }
     }
 }

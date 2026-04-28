@@ -8,16 +8,19 @@
 import SwiftUI
 
 struct SettingsView: View {
-    //@Binding var isLoggedIn: Bool
     @ObservedObject var authViewModel: AuthViewModel
     
     @AppStorage("selectedTheme") private var selectedThemeRawValue: String = ThemeOption.system.rawValue
     @AppStorage("notificationsEnabled") private var notificationsEnabled: Bool = true
     
-    @State private var isShowingThemeSheet = false
-    @State private var isShowingHelpSheet = false
-    @State private var isShowingTermsSheet = false
     @State private var isShowingLogoutConfirmation = false
+    @State private var activePopup: SettingsPopupType?
+    
+    private enum SettingsPopupType {
+        case theme
+        case help
+        case terms
+    }
     
     private var selectedTheme: ThemeOption {
         ThemeOption(rawValue: selectedThemeRawValue) ?? .system
@@ -35,7 +38,6 @@ struct SettingsView: View {
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 18) {
                             profileCard
-                            
                             preferencesSection
                             supportSection
                             logoutButton
@@ -45,24 +47,13 @@ struct SettingsView: View {
                         .padding(.bottom, 24)
                     }
                 }
+                
+                if activePopup != nil {
+                    settingsPopupOverlay
+                }
             }
             .ignoresSafeArea(edges: .top)
             .navigationBarHidden(true)
-            .sheet(isPresented: $isShowingThemeSheet) {
-                themeSelectionSheet
-            }
-            .sheet(isPresented: $isShowingHelpSheet) {
-                infoSheet(
-                    title: "Ayuda",
-                    content: "Para guardar una ubicación, ve a la pestaña Mapa y presiona “Guardar ubicación”. También puedes ver el detalle de cada lugar desde la lista de ubicaciones."
-                )
-            }
-            .sheet(isPresented: $isShowingTermsSheet) {
-                infoSheet(
-                    title: "Términos y condiciones",
-                    content: "Esta aplicación fue desarrollada con fines académicos como proyecto final del curso de desarrollo móvil nativo para iOS. No recopila información con fines comerciales."
-                )
-            }
             .alert("Cerrar sesión", isPresented: $isShowingLogoutConfirmation) {
                 Button("Cancelar", role: .cancel) { }
                 Button("Cerrar sesión", role: .destructive) {
@@ -78,6 +69,7 @@ struct SettingsView: View {
 #Preview {
     SettingsView(authViewModel: AuthViewModel())
 }
+
 
 private extension SettingsView {
     var headerSection: some View {
@@ -109,7 +101,7 @@ private extension SettingsView {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Wilder")
                     .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color.black.opacity(0.85))
+                    .foregroundStyle(AppColors.primaryText)
                 
                 Text(authViewModel.email.isEmpty ? "user@maply.com" : authViewModel.email)
                     .font(.system(size: 14, weight: .medium, design: .rounded))
@@ -121,10 +113,10 @@ private extension SettingsView {
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(AppColors.cardBackground.opacity(0.88))
+                .fill(AppColors.cardBackground.opacity(0.96))
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(Color.black.opacity(0.04), lineWidth: 1)
+                        .stroke(AppColors.dividerColor, lineWidth: 1)
                 )
         )
     }
@@ -133,11 +125,10 @@ private extension SettingsView {
         VStack(alignment: .leading, spacing: 12) {
             Text("Preferencias")
                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.black.opacity(0.86))
+                .foregroundStyle(AppColors.primaryText)
             
             VStack(spacing: 10) {
                 themeRow
-                
                 notificationToggleRow
                 
                 NavigationLink {
@@ -158,7 +149,7 @@ private extension SettingsView {
         VStack(alignment: .leading, spacing: 12) {
             Text("Soporte")
                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.black.opacity(0.86))
+                .foregroundStyle(AppColors.primaryText)
             
             VStack(spacing: 10) {
                 actionRow(
@@ -166,7 +157,7 @@ private extension SettingsView {
                     iconColor: AppColors.primaryGreen,
                     title: "Ayuda"
                 ) {
-                    isShowingHelpSheet = true
+                    activePopup = .help
                 }
                 
                 actionRow(
@@ -174,7 +165,7 @@ private extension SettingsView {
                     iconColor: AppColors.primaryBlue,
                     title: "Términos y condiciones"
                 ) {
-                    isShowingTermsSheet = true
+                    activePopup = .terms
                 }
             }
         }
@@ -182,7 +173,7 @@ private extension SettingsView {
     
     var themeRow: some View {
         Button {
-            isShowingThemeSheet = true
+            activePopup = .theme
         } label: {
             HStack(spacing: 14) {
                 Image(systemName: "sun.max.fill")
@@ -197,7 +188,7 @@ private extension SettingsView {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Tema")
                         .font(.system(size: 17, weight: .semibold, design: .rounded))
-                        .foregroundStyle(Color.black.opacity(0.82))
+                        .foregroundStyle(AppColors.primaryText.opacity(0.95))
                     
                     Text(selectedTheme.title)
                         .font(.system(size: 13, weight: .medium, design: .rounded))
@@ -208,16 +199,16 @@ private extension SettingsView {
                 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Color.gray.opacity(0.7))
+                    .foregroundStyle(AppColors.mutedText)
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 14)
             .background(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(AppColors.cardBackground.opacity(0.88))
+                    .fill(AppColors.cardBackground.opacity(0.96))
                     .overlay(
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .stroke(Color.black.opacity(0.04), lineWidth: 1)
+                            .stroke(AppColors.dividerColor, lineWidth: 1)
                     )
             )
         }
@@ -237,21 +228,22 @@ private extension SettingsView {
             
             Text("Notificaciones")
                 .font(.system(size: 17, weight: .semibold, design: .rounded))
-                .foregroundStyle(Color.black.opacity(0.82))
+                .foregroundStyle(AppColors.primaryText.opacity(0.95))
             
             Spacer()
             
             Toggle("", isOn: $notificationsEnabled)
                 .labelsHidden()
+                .tint(AppColors.primaryBlue)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 14)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(AppColors.cardBackground.opacity(0.88))
+                .fill(AppColors.cardBackground.opacity(0.96))
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(Color.black.opacity(0.04), lineWidth: 1)
+                        .stroke(AppColors.dividerColor, lineWidth: 1)
                 )
         )
     }
@@ -269,22 +261,22 @@ private extension SettingsView {
             
             Text(title)
                 .font(.system(size: 17, weight: .semibold, design: .rounded))
-                .foregroundStyle(Color.black.opacity(0.82))
+                .foregroundStyle(AppColors.primaryText.opacity(0.95))
             
             Spacer()
             
             Image(systemName: "chevron.right")
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(Color.gray.opacity(0.7))
+                .foregroundStyle(AppColors.mutedText)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 14)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(AppColors.cardBackground.opacity(0.88))
+                .fill(AppColors.cardBackground.opacity(0.96))
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(Color.black.opacity(0.04), lineWidth: 1)
+                        .stroke(AppColors.dividerColor, lineWidth: 1)
                 )
         )
     }
@@ -305,22 +297,22 @@ private extension SettingsView {
                 
                 Text(title)
                     .font(.system(size: 17, weight: .semibold, design: .rounded))
-                    .foregroundStyle(Color.black.opacity(0.82))
+                    .foregroundStyle(AppColors.primaryText.opacity(0.95))
                 
                 Spacer()
                 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Color.gray.opacity(0.7))
+                    .foregroundStyle(AppColors.mutedText)
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 14)
             .background(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(AppColors.cardBackground.opacity(0.88))
+                    .fill(AppColors.cardBackground.opacity(0.96))
                     .overlay(
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .stroke(Color.black.opacity(0.04), lineWidth: 1)
+                            .stroke(AppColors.dividerColor, lineWidth: 1)
                     )
             )
         }
@@ -355,63 +347,174 @@ private extension SettingsView {
 }
 
 private extension SettingsView {
-    var themeSelectionSheet: some View {
-        NavigationStack {
+    var settingsPopupOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.35)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    activePopup = nil
+                }
+            
             VStack(spacing: 18) {
-                ForEach(ThemeOption.allCases) { theme in
-                    Button {
-                        selectedThemeRawValue = theme.rawValue
-                    } label: {
-                        HStack {
-                            Text(theme.title)
-                                .font(.system(size: 18, weight: .semibold, design: .rounded))
-                                .foregroundStyle(Color.black.opacity(0.85))
-                            
-                            Spacer()
-                            
-                            if selectedTheme == theme {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(AppColors.primaryBlue)
-                                    .font(.system(size: 22))
-                            }
-                        }
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(AppColors.cardBackground.opacity(0.9))
-                        )
-                    }
-                    .buttonStyle(.plain)
+                popupHeader
+                popupContent
+                
+                if activePopup == .theme {
+                    themeOptionsContent
                 }
                 
-                Spacer()
+                popupCloseButton
             }
             .padding(20)
-            .background(AppColors.pageBackground)
-            .navigationTitle("Seleccionar tema")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Cerrar") { isShowingThemeSheet = false }
-                }
-            }
+            .frame(width: 340)
+            .background(
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .fill(AppColors.pageBackground)
+                    .shadow(color: .black.opacity(0.18), radius: 20, x: 0, y: 10)
+            )
+            .padding(.horizontal, 24)
         }
-        .presentationDetents([.medium])
     }
     
-    func infoSheet(title: String, content: String) -> some View {
-        NavigationStack {
-            ScrollView {
-                Text(content)
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .foregroundStyle(Color.black.opacity(0.82))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(20)
+    var popupHeader: some View {
+        HStack {
+            Text(popupTitle)
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundStyle(AppColors.primaryText)
+            
+            Spacer()
+            
+            Button {
+                activePopup = nil
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(AppColors.mutedText)
+                    .frame(width: 34, height: 34)
+                    .background(
+                        Circle()
+                            .fill(AppColors.cardBackground)
+                    )
             }
-            .background(AppColors.pageBackground)
-            .navigationTitle(title)
-            .navigationBarTitleDisplayMode(.inline)
+            .buttonStyle(.plain)
         }
-        .presentationDetents([.medium, .large])
+    }
+    
+    @ViewBuilder
+    var popupContent: some View {
+        switch activePopup {
+        case .help:
+            popupTextCard(
+                title: "Centro de ayuda",
+                text: "Para guardar una ubicación, ve a la pestaña Mapa y presiona “Guardar ubicación”. También puedes deslizar una ubicación para eliminarla o tocarla para ver su detalle."
+            )
+        case .terms:
+            popupTextCard(
+                title: "Términos y condiciones",
+                text: "Maply es una aplicación desarrollada con fines académicos como proyecto final del curso de desarrollo móvil nativo para iOS. La información se almacena localmente en el dispositivo y no se utiliza con fines comerciales."
+            )
+        case .theme:
+            popupTextCard(
+                title: "Selecciona el tema visual",
+                text: "El cambio se aplicará a toda la aplicación y quedará guardado para los próximos inicios."
+            )
+        case .none:
+            EmptyView()
+        }
+    }
+    
+    func popupTextCard(title: String, text: String) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .foregroundStyle(AppColors.primaryText.opacity(0.95))
+            
+            Text(text)
+                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .foregroundStyle(AppColors.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(AppColors.cardBackground.opacity(0.96))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(AppColors.dividerColor, lineWidth: 1)
+                )
+        )
+    }
+    
+    var themeOptionsContent: some View {
+        VStack(spacing: 12) {
+            ForEach(ThemeOption.allCases) { theme in
+                Button {
+                    selectedThemeRawValue = theme.rawValue
+                    activePopup = nil
+                } label: {
+                    HStack {
+                        Text(theme.title)
+                            .font(.system(size: 17, weight: .semibold, design: .rounded))
+                            .foregroundStyle(AppColors.primaryText.opacity(0.95))
+                        
+                        Spacer()
+                        
+                        if selectedTheme == theme {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 22))
+                                .foregroundStyle(AppColors.primaryBlue)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .frame(height: 54)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(AppColors.cardBackground.opacity(0.96))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .stroke(
+                                        selectedTheme == theme
+                                        ? AppColors.primaryBlue.opacity(0.35)
+                                        : AppColors.dividerColor,
+                                        lineWidth: 1
+                                    )
+                            )
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+    
+    var popupCloseButton: some View {
+        Button {
+            activePopup = nil
+        } label: {
+            Text("Cerrar")
+                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(AppColors.darkSurface)
+                )
+        }
+        .buttonStyle(.plain)
+        .padding(.top, 4)
+    }
+    
+    var popupTitle: String {
+        switch activePopup {
+        case .theme:
+            return "Tema"
+        case .help:
+            return "Ayuda"
+        case .terms:
+            return "Términos"
+        case .none:
+            return ""
+        }
     }
 }
