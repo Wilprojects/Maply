@@ -218,7 +218,7 @@ Cmd + R
 
 - Lista de ubicaciones
 <img src="Images/screenshots/Lista-ubicaciones.png" alt="Lista de ubicaciones" width="300">
-<img src="Images/screenshots/Lista-ubicaciones-dark.png" alt="Lista de ubicaciones Dark width="300">
+<img src="Images/screenshots/Lista-ubicaciones-dark.png" alt="Lista de ubicaciones Dark" width="300">
 
 - Detalle de Ubicaciones
 <img src="Images/screenshots/Detalle-ubicaciones.png" alt="Detalle de Ubicaciones" width="300">
