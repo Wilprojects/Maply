@@ -213,28 +213,28 @@ Cmd + R
 ## 📸 Capturas de Pantalla del Aplicativo
 
 - Pantalla principal (Mapa)
-![Pantalla Principal](Images/screenshots/Pantalla-principal.png)
-![Pantalla Principal Dark](Images/screenshots/Pantalla-principal-dark.png)
+<img src="Images/screenshots/Pantalla-principal.png" alt="Pantalla Principal" width="300">
+<img src="Images/screenshots/Pantalla-principal-dark.png" alt="Pantalla Principal Dark" width="300">
 
 - Lista de ubicaciones
-![Lista de ubicaciones](Images/screenshots/Lista-ubicaciones.png)
-![Lista de ubicaciones Dark](Images/screenshots/Lista-ubicaciones-dark.png)
+<img src="Images/screenshots/Lista-ubicaciones.png" alt="Lista de ubicaciones" width="300">
+<img src="Images/screenshots/Lista-ubicaciones-dark.png alt="Lista de ubicaciones Dark width="300">
 
 - Detalle de Ubicaciones
-![Detalle de Ubicaciones](Images/screenshots/Detalle-ubicaciones.png)
-![Detalle de Ubicaciones Dark](Images/screenshots/Detalle-ubicaciones-dark.png)
+<img src="Images/screenshots/Detalle-ubicaciones.png" alt="Detalle de Ubicaciones" width="300">
+<img src="Images/screenshots/Detalle-ubicaciones-dark.png" alt="Detalle de Ubicaciones Dark" width="300">
 
 - Settings
-![Settings](Images/screenshots/Settings.png)
-![Settings Dark](Images/screenshots/Settings-dark.png)
+<img src="Images/screenshots/Settings.png" alt="Settings" width="300">
+<img src="Images/screenshots/Settings-dark.png" alt="Settings Dark" width="300">
 
 - Popup de guardar ubicación
-![Popup de guardar ubicación](Images/screenshots/Popup-guardar-ubicacion.png)
-![Popup de guardar ubicación Dark](Images/screenshots/Popup-guardar-ubicacion-dark.png)
+<img src="Images/screenshots/Popup-guardar-ubicacion.png" alt="Popup de guardar ubicación" width="300">
+<img src="Images/screenshots/Popup-guardar-ubicacion-dark.png" alt="Popup de guardar ubicaciónDark" width="300">
 
 - Privacidad (Permisos de Ubicacion)
-![Privacidad](Images/screenshots/Privacidad.png)
-![Privacidad Dark](Images/screenshots/Privacidad-dark.png)
+<img src="Images/screenshots/Privacidad.png" alt="Privacidad" width="300">
+<img src="Images/screenshots/Privacidad-dark.png" alt="Privacidad Dark" width="300">
 
 ---
 
