@@ -80,6 +80,11 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		D0EF3D702FA1D9DF008C229F /* Config */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Config;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -110,6 +115,7 @@
 		D0EB51922F93E2EE000C1F22 = {
 			isa = PBXGroup;
 			children = (
+				D0EF3D702FA1D9DF008C229F /* Config */,
 				D0EB51C52F93E476000C1F22 /* App */,
 				D0EB51AB2F93E2EF000C1F22 /* MaplyTests */,
 				D0EB51B52F93E2EF000C1F22 /* MaplyUITests */,
@@ -158,6 +164,7 @@
 				D0EB51CA2F93E4DA000C1F22 /* Repositories */,
 				D0EB51CB2F93E4E7000C1F22 /* Utils */,
 				D0EB51CC2F93E4F2000C1F22 /* Resources */,
+				D0EF3D702FA1D9DF008C229F /* Config */,
 			);
 			name = Maply;
 			packageProductDependencies = (
@@ -446,6 +453,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Maply necesita acceder a tu ubicación para mostrar tu posición actual en el mapa y guardar lugares cercanos.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -477,6 +486,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Maply necesita acceder a tu ubicación para mostrar tu posición actual en el mapa y guardar lugares cercanos.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
