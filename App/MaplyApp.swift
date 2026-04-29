@@ -7,11 +7,16 @@
 
 import SwiftUI
 import SwiftData
+import UserNotifications
 
 @main
 struct MaplyApp: App {
     
     @AppStorage("selectedTheme") private var selectedThemeRawValue: String = ThemeOption.system.rawValue
+    
+    init() {
+       UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
+   }
     
     var body: some Scene {
         WindowGroup {
@@ -23,6 +28,16 @@ struct MaplyApp: App {
     
     private var currentTheme: ThemeOption {
         ThemeOption(rawValue: selectedThemeRawValue) ?? .system
+    }
+    
+    class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+        static let shared = NotificationDelegate()
+        
+        func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                    willPresent notification: UNNotification,
+                                    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+            completionHandler([.banner, .sound])
+        }
     }
 }
 

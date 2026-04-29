@@ -416,6 +416,16 @@ private extension MapHomeView {
         )
         
         modelContext.insert(newLocation)
+        
+        let notificationsEnabled = UserDefaults.standard.bool(forKey: "notificationsEnabled")
+        if notificationsEnabled {
+            Task {
+                await NotificationManager.shared.scheduleLocationSavedNotification(
+                    name: trimmedName,
+                    address: trimmedAddress
+                )
+            }
+        }
     }
     
     func colorForHex(_ colorHex: String) -> Color {

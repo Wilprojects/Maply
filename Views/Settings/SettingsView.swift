@@ -15,6 +15,10 @@ struct SettingsView: View {
     
     @State private var isShowingLogoutConfirmation = false
     @State private var activePopup: SettingsPopupType?
+    @State private var isShowingNotificationSettingsAlert = false
+    @State private var notificationToggleValue = false
+    @State private var isSyncingNotificationState = false
+    @State private var notificationPermissionGranted = false
     
     private enum SettingsPopupType {
         case theme
@@ -61,6 +65,17 @@ struct SettingsView: View {
                 }
             } message: {
                 Text("¿Deseas cerrar tu sesión en Maply?")
+            }
+            .alert("Notificaciones desactivadas", isPresented: $isShowingNotificationSettingsAlert) {
+                Button("Cancelar", role: .cancel) { }
+                Button("Abrir Ajustes") {
+                    openAppSettings()
+                }
+            } message: {
+                Text("Debes habilitar las notificaciones desde Ajustes para recibir avisos de nuevas direcciones guardadas.")
+            }
+            .task {
+                await refreshNotificationStatus()
             }
         }
     }
@@ -226,13 +241,19 @@ private extension SettingsView {
                         .fill(AppColors.primaryBlue)
                 )
             
-            Text("Notificaciones")
-                .font(.system(size: 17, weight: .semibold, design: .rounded))
-                .foregroundStyle(AppColors.primaryText.opacity(0.95))
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Notificaciones")
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.primaryText.opacity(0.95))
+                
+                Text(notificationStatusText)
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.secondaryText)
+            }
             
             Spacer()
             
-            Toggle("", isOn: $notificationsEnabled)
+            Toggle("", isOn: $notificationToggleValue)
                 .labelsHidden()
                 .tint(AppColors.primaryBlue)
         }
@@ -246,6 +267,13 @@ private extension SettingsView {
                         .stroke(AppColors.dividerColor, lineWidth: 1)
                 )
         )
+        .onChange(of: notificationToggleValue) { _, newValue in
+            guard !isSyncingNotificationState else { return }
+            
+            Task {
+                await handleNotificationToggleChange(newValue)
+            }
+        }
     }
     
     func settingsNavigationRow(icon: String, iconColor: Color, title: String) -> some View {
@@ -516,5 +544,96 @@ private extension SettingsView {
         case .none:
             return ""
         }
+    }
+    
+    
+    func refreshNotificationStatus() async {
+        let status = await NotificationManager.shared.getAuthorizationStatus()
+        
+        switch status {
+        case .authorized, .provisional, .ephemeral:
+            notificationPermissionGranted = true
+        case .denied, .notDetermined:
+            notificationPermissionGranted = false
+        @unknown default:
+            notificationPermissionGranted = false
+        }
+        
+        isSyncingNotificationState = true
+        notificationToggleValue = notificationsEnabled
+        isSyncingNotificationState = false
+    }
+
+    func handleNotificationToggleChange(_ newValue: Bool) async {
+        if newValue {
+            let status = await NotificationManager.shared.getAuthorizationStatus()
+            
+            switch status {
+            case .authorized, .provisional, .ephemeral:
+                notificationPermissionGranted = true
+                notificationsEnabled = true
+                
+                isSyncingNotificationState = true
+                notificationToggleValue = true
+                isSyncingNotificationState = false
+                
+            case .notDetermined:
+                do {
+                    let granted = try await NotificationManager.shared.requestAuthorization()
+                    notificationPermissionGranted = granted
+                    notificationsEnabled = granted
+                    
+                    isSyncingNotificationState = true
+                    notificationToggleValue = granted
+                    isSyncingNotificationState = false
+                } catch {
+                    notificationPermissionGranted = false
+                    notificationsEnabled = false
+                    
+                    isSyncingNotificationState = true
+                    notificationToggleValue = false
+                    isSyncingNotificationState = false
+                    
+                    print("Error solicitando notificaciones: \(error.localizedDescription)")
+                }
+                
+            case .denied:
+                notificationPermissionGranted = false
+                notificationsEnabled = false
+                
+                isSyncingNotificationState = true
+                notificationToggleValue = false
+                isSyncingNotificationState = false
+                
+                isShowingNotificationSettingsAlert = true
+                
+            @unknown default:
+                notificationPermissionGranted = false
+                notificationsEnabled = false
+                
+                isSyncingNotificationState = true
+                notificationToggleValue = false
+                isSyncingNotificationState = false
+            }
+        } else {
+            notificationsEnabled = false
+            
+            isSyncingNotificationState = true
+            notificationToggleValue = false
+            isSyncingNotificationState = false
+        }
+    }
+    
+    var notificationStatusText: String {
+        if !notificationPermissionGranted {
+            return "Permiso no concedido"
+        }
+        
+        return notificationsEnabled ? "Activadas" : "Desactivadas"
+    }
+
+    func openAppSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
     }
 }
