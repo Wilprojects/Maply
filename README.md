@@ -80,15 +80,15 @@ Desarrollar una aplicación funcional en iOS que demuestre:
 
 El proyecto sigue una estructura modular basada en separación de responsabilidades:
 
-Maply/
-├── App/
-├── Views/
-├── ViewModels/
-├── Models/
-├── Services/
-├── Managers/
-├── Config/
-├── Utils/
+- Maply/
+    - App/
+    - Views/
+    - ViewModels/
+    - Models/
+    - Services/
+    - Managers/
+    - Config/
+    - Utils/
 
 
 ### Componentes clave
@@ -172,7 +172,7 @@ Búsqueda de direcciones en tiempo real con sugerencias
 1. Clonar el repositorio:
 
 ```bash
-git clone https://github.com/tu-usuario/maply.git
+git clone https://github.com/Wilprojects/Maply.git
 ```
 
 2. Abrir el proyecto en Xcode:
@@ -186,7 +186,7 @@ Editar:
 
 ```bash
 Config/APIKeys.swift
-static let geoapify = "TU_API_KEY"
+static let geoapify = "3e1dc93ad20d4df7bffd00c34f59c961"
 ```
 
 4. Ejecutar en simulador:
@@ -194,6 +194,8 @@ static let geoapify = "TU_API_KEY"
 ```bash
 Cmd + R
 ```
+
+---
 
 ## 🧪 Pruebas recomendadas
 
@@ -206,13 +208,35 @@ Cmd + R
 - Cambio de tema
 - Permisos denegados
 
+---
+
 ## 📸 Capturas de Pantalla del Aplicativo
 
 - Pantalla principal (Mapa)
+![Pantalla Principal](Images/screenshots/Pantalla-principal.png)
+![Pantalla Principal Dark](Images/screenshots/Pantalla-principal-dark.png)
+
 - Lista de ubicaciones
-- Detalle
+![Lista de ubicaciones](Images/screenshots/Lista-ubicaciones.png)
+![Lista de ubicaciones Dark](Images/screenshots/Lista-ubicaciones-dark.png)
+
+- Detalle de Ubicaciones
+![Detalle de Ubicaciones](Images/screenshots/Detalle-ubicaciones.png)
+![Detalle de Ubicaciones Dark](Images/screenshots/Detalle-ubicaciones-dark.png)
+
 - Settings
+![Settings](Images/screenshots/Settings.png)
+![Settings Dark](Images/screenshots/Settings-dark.png)
+
 - Popup de guardar ubicación
+![Popup de guardar ubicación](Images/screenshots/Popup-guardar-ubicacion.png)
+![Popup de guardar ubicación Dark](Images/screenshots/Popup-guardar-ubicacion-dark.png)
+
+- Privacidad (Permisos de Ubicacion)
+![Privacidad](Images/screenshots/Privacidad.png)
+![Privacidad Dark](Images/screenshots/Privacidad-dark.png)
+
+---
 
 ## 📌 Tecnologías utilizadas
 
@@ -224,6 +248,8 @@ Cmd + R
 - Keychain
 - Geoapify API
 
+---
+
 ## 📈 Posibles mejoras
 
 - Integración con backend (Firebase / API propia)
@@ -234,10 +260,14 @@ Cmd + R
 - Accesibilidad (VoiceOver)
 - Soporte offline
 
+---
 
 ## 👨‍💻 Autor
 Wilder Moreno Zavaleta
 
+---
 
 ## 📝 Licencia
 Proyecto académico con fines educativos.
+
+---
