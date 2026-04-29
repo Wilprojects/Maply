@@ -1,10 +1,12 @@
 {
   "images" : [
     {
+      "filename" : "maply_icon 1.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
+      "filename" : "maply_icon 2.png",
       "idiom" : "universal",
       "scale" : "2x"
     },

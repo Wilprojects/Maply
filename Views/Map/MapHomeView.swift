@@ -41,7 +41,7 @@ struct MapHomeView: View {
                     VStack(spacing: 0) {
                         headerSection
                         mapSection
-                        locationCardSection(availableHeight: geometry.size.height)
+                        locationCardSection()
                     }
                     
                     if isShowingSaveLocationSheet {
@@ -66,6 +66,9 @@ struct MapHomeView: View {
             } message: { location in
                 Text("¿Deseas eliminar \"\(location.name)\"? Esta acción no se puede deshacer.")
             }
+        }
+        .safeAreaInset(edge: .bottom) {
+            Color.clear.frame(height: 90)
         }
     }
 }
@@ -230,31 +233,9 @@ private extension MapHomeView {
         UIApplication.shared.open(url)
     }
     
-    func locationCardSection(availableHeight: CGFloat) -> some View {
-        let headerHeight: CGFloat = 165
-        let mapHeight: CGFloat = 272
-        let overlap: CGFloat = 18
-        
-        let cardHeight = max(
-            availableHeight - headerHeight - mapHeight + overlap,
-            320
-        )
-        
-        return VStack(spacing: 14) {
-            HStack {
-                Text("Mi Ubicación")
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppColors.primaryText)
-                
-                Spacer()
-                
-                HStack(spacing: 6) {
-                    Circle().fill(AppColors.mutedText.opacity(0.55)).frame(width: 6, height: 6)
-                    Circle().fill(AppColors.mutedText.opacity(0.55)).frame(width: 6, height: 6)
-                    Circle().fill(AppColors.mutedText.opacity(0.55)).frame(width: 6, height: 6)
-                }
-            }
-            .padding(.top, 2)
+    func locationCardSection() -> some View {
+        VStack(spacing: 14) {
+            headerRow
             
             List {
                 ForEach(savedLocations) { location in
@@ -269,13 +250,9 @@ private extension MapHomeView {
             .background(Color.clear)
             
             saveLocationSection
-                .padding(.top, 4)
         }
         .padding(.horizontal, 16)
         .padding(.top, 18)
-        .padding(.bottom, 18)
-        .frame(maxWidth: .infinity)
-        .frame(height: cardHeight, alignment: .top)
         .background(
             RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .fill(AppColors.pageBackground)
@@ -462,6 +439,22 @@ private extension MapHomeView {
         }
     }
     
+    var headerRow: some View {
+        HStack {
+            Text("Mi Ubicación")
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundStyle(AppColors.primaryText)
+            
+            Spacer()
+            
+            HStack(spacing: 6) {
+                Circle().fill(AppColors.mutedText.opacity(0.55)).frame(width: 6, height: 6)
+                Circle().fill(AppColors.mutedText.opacity(0.55)).frame(width: 6, height: 6)
+                Circle().fill(AppColors.mutedText.opacity(0.55)).frame(width: 6, height: 6)
+            }
+        }
+    }
+    
     var saveLocationSection: some View {
         HStack(spacing: 10) {
             ZStack {
@@ -505,6 +498,7 @@ private extension MapHomeView {
                 .shadow(color: AppColors.primaryBlue.opacity(0.22), radius: 8, x: 0, y: 5)
             }
         }
+        .padding(.bottom, 6)
     }
     
     func saveCurrentLocation(name: String, address: String) {
