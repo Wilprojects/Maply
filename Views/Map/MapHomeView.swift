@@ -23,6 +23,10 @@ struct MapHomeView: View {
     @State private var locationAddress = ""
     @State private var isResolvingAddress = false
     @State private var geocodingErrorMessage = ""
+    @State private var searchTask: Task<Void, Never>?
+    @State private var addressSuggestions: [AddressSuggestion] = []
+    @State private var isSearchingSuggestions = false
+    @State private var isSelectingSuggestion = false
     
     @State private var isShowingDeleteConfirmation = false
     @State private var locationToDelete: SavedLocationItem?
@@ -284,6 +288,8 @@ private extension MapHomeView {
         locationName = ""
         locationAddress = ""
         geocodingErrorMessage = ""
+        addressSuggestions = []
+        searchTask?.cancel()
         isShowingSaveLocationSheet = true
         
         guard let location = locationManager.currentLocation else {
@@ -314,6 +320,71 @@ private extension MapHomeView {
                     isResolvingAddress = false
                 }
             }
+        }
+    }
+    
+    
+    func searchAddressSuggestions(for query: String) {
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        searchTask?.cancel()
+        
+        guard !trimmedQuery.isEmpty else {
+            addressSuggestions = []
+            isSearchingSuggestions = false
+            return
+        }
+        
+        isSearchingSuggestions = true
+        geocodingErrorMessage = ""
+        
+        let currentLatitude = locationManager.currentLocation?.coordinate.latitude
+        let currentLongitude = locationManager.currentLocation?.coordinate.longitude
+        
+        searchTask = Task {
+            do {
+                try await Task.sleep(nanoseconds: 350_000_000)
+                
+                guard !Task.isCancelled else { return }
+                
+                let suggestions = try await GeoapifyGeocodingService.shared.autocomplete(
+                    text: trimmedQuery,
+                    biasLatitude: currentLatitude,
+                    biasLongitude: currentLongitude
+                )
+                
+                guard !Task.isCancelled else { return }
+                
+                await MainActor.run {
+                    addressSuggestions = suggestions
+                    isSearchingSuggestions = false
+                }
+            } catch is CancellationError {
+                return
+            } catch {
+                await MainActor.run {
+                    addressSuggestions = []
+                    isSearchingSuggestions = false
+                    geocodingErrorMessage = "No se pudieron obtener sugerencias."
+                }
+            }
+        }
+    }
+    
+    
+    func selectSuggestion(_ suggestion: AddressSuggestion) {
+        isSelectingSuggestion = true
+        
+        if locationName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+            locationName == "Nueva ubicación" {
+            locationName = suggestion.name
+        }
+        
+        locationAddress = suggestion.address
+        addressSuggestions = []
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            isSelectingSuggestion = false
         }
     }
 }
@@ -496,6 +567,8 @@ private extension MapHomeView {
             Color.black.opacity(0.4)
                 .ignoresSafeArea()
                 .onTapGesture {
+                    searchTask?.cancel()
+                    addressSuggestions = []
                     isShowingSaveLocationSheet = false
                 }
             
@@ -531,6 +604,10 @@ private extension MapHomeView {
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(AppColors.dividerColor, lineWidth: 1)
                             )
+                            .onChange(of: locationAddress) { _, newValue in
+                                guard !isSelectingSuggestion else { return }
+                                searchAddressSuggestions(for: newValue)
+                            }
                         
                         if isResolvingAddress {
                             HStack(spacing: 8) {
@@ -540,6 +617,50 @@ private extension MapHomeView {
                                 Text("Obteniendo dirección desde Geoapify...")
                                     .font(.system(size: 13, weight: .medium, design: .rounded))
                                     .foregroundStyle(AppColors.secondaryText)
+                            }
+                        }
+                        
+                        if isSearchingSuggestions {
+                            HStack(spacing: 8) {
+                                ProgressView()
+                                    .scaleEffect(0.85)
+                                
+                                Text("Buscando sugerencias...")
+                                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                                    .foregroundStyle(AppColors.secondaryText)
+                            }
+                        }
+                        
+                        if !addressSuggestions.isEmpty {
+                            VStack(spacing: 8) {
+                                ForEach(addressSuggestions) { suggestion in
+                                    Button {
+                                        selectSuggestion(suggestion)
+                                    } label: {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(suggestion.name)
+                                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                                .foregroundStyle(AppColors.primaryText)
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                            
+                                            Text(suggestion.address)
+                                                .font(.system(size: 12, weight: .medium, design: .rounded))
+                                                .foregroundStyle(AppColors.secondaryText)
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                                .lineLimit(2)
+                                        }
+                                        .padding(12)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                                .fill(AppColors.cardBackground.opacity(0.96))
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                                        .stroke(AppColors.dividerColor, lineWidth: 1)
+                                                )
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
+                                }
                             }
                         }
                         
@@ -553,6 +674,8 @@ private extension MapHomeView {
                 
                 HStack(spacing: 12) {
                     Button {
+                        searchTask?.cancel()
+                        addressSuggestions = []
                         isShowingSaveLocationSheet = false
                     } label: {
                         Text("Cancelar")

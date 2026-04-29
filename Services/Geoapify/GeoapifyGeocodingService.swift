@@ -123,4 +123,51 @@ final class GeoapifyGeocodingService {
         
         return "Dirección no disponible"
     }
+    
+    func autocomplete(text: String, biasLatitude: Double? = nil, biasLongitude: Double? = nil) async throws -> [AddressSuggestion] {
+        let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedText.isEmpty else { return [] }
+        
+        var components = URLComponents(string: "https://api.geoapify.com/v1/geocode/autocomplete")
+        
+        var queryItems: [URLQueryItem] = [
+            URLQueryItem(name: "text", value: trimmedText),
+            URLQueryItem(name: "lang", value: "es"),
+            URLQueryItem(name: "limit", value: "5"),
+            URLQueryItem(name: "format", value: "json"),
+            URLQueryItem(name: "apiKey", value: APIKeys.geoapify)
+        ]
+        
+        if let lat = biasLatitude, let lon = biasLongitude {
+            queryItems.append(URLQueryItem(name: "bias", value: "proximity:\(lon),\(lat)"))
+        }
+        
+        components?.queryItems = queryItems
+        
+        guard let url = components?.url else {
+            throw GeoapifyServiceError.invalidURL
+        }
+        
+        let (data, response) = try await URLSession.shared.data(from: url)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              200...299 ~= httpResponse.statusCode else {
+            throw GeoapifyServiceError.invalidResponse
+        }
+        
+        let decodedResponse = try JSONDecoder().decode(
+            GeoapifyAutocompleteResponse.self,
+            from: data
+        )
+        
+        return decodedResponse.results.map { result in
+            AddressSuggestion(
+                id: result.placeId ?? UUID().uuidString,
+                name: result.name ?? result.addressLine1 ?? "Lugar sugerido",
+                address: result.formatted ?? result.addressLine2 ?? result.addressLine1 ?? "Dirección no disponible",
+                latitude: result.lat,
+                longitude: result.lon
+            )
+        }
+    }
 }
