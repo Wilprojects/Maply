@@ -21,6 +21,8 @@ struct MapHomeView: View {
     @State private var isShowingSaveLocationSheet = false
     @State private var locationName = ""
     @State private var locationAddress = ""
+    @State private var isResolvingAddress = false
+    @State private var geocodingErrorMessage = ""
     
     @State private var isShowingDeleteConfirmation = false
     @State private var locationToDelete: SavedLocationItem?
@@ -277,6 +279,43 @@ private extension MapHomeView {
         )
         .offset(y: -18)
     }
+    
+    func prepareSaveLocationForm() {
+        locationName = ""
+        locationAddress = ""
+        geocodingErrorMessage = ""
+        isShowingSaveLocationSheet = true
+        
+        guard let location = locationManager.currentLocation else {
+            geocodingErrorMessage = "No se pudo obtener tu ubicación actual."
+            return
+        }
+        
+        isResolvingAddress = true
+        
+        Task {
+            do {
+                let place = try await GeoapifyGeocodingService.shared.reverseGeocode(
+                    latitude: location.coordinate.latitude,
+                    longitude: location.coordinate.longitude
+                )
+
+                await MainActor.run {
+                    if locationName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        locationName = place.suggestedName
+                    }
+                    
+                    locationAddress = place.suggestedAddress
+                    isResolvingAddress = false
+                }
+            } catch {
+                await MainActor.run {
+                    geocodingErrorMessage = error.localizedDescription
+                    isResolvingAddress = false
+                }
+            }
+        }
+    }
 }
 
 
@@ -367,9 +406,7 @@ private extension MapHomeView {
             }
             
             Button {
-                locationName = ""
-                locationAddress = ""
-                isShowingSaveLocationSheet = true
+                prepareSaveLocationForm()
             } label: {
                 HStack {
                     Spacer()
@@ -481,18 +518,37 @@ private extension MapHomeView {
                                 .stroke(AppColors.dividerColor, lineWidth: 1)
                         )
                     
-                    TextField("Dirección o referencia", text: $locationAddress)
-                        .padding()
-                        .foregroundStyle(AppColors.primaryText)
-                        .tint(AppColors.primaryBlue)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(AppColors.inputBackground)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(AppColors.dividerColor, lineWidth: 1)
-                        )
+                    VStack(alignment: .leading, spacing: 8) {
+                        TextField("Dirección o referencia", text: $locationAddress)
+                            .padding()
+                            .foregroundStyle(AppColors.primaryText)
+                            .tint(AppColors.primaryBlue)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(AppColors.inputBackground)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(AppColors.dividerColor, lineWidth: 1)
+                            )
+                        
+                        if isResolvingAddress {
+                            HStack(spacing: 8) {
+                                ProgressView()
+                                    .scaleEffect(0.9)
+                                
+                                Text("Obteniendo dirección desde Geoapify...")
+                                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                                    .foregroundStyle(AppColors.secondaryText)
+                            }
+                        }
+                        
+                        if !geocodingErrorMessage.isEmpty {
+                            Text(geocodingErrorMessage)
+                                .font(.system(size: 12, weight: .medium, design: .rounded))
+                                .foregroundStyle(.red)
+                        }
+                    }
                 }
                 
                 HStack(spacing: 12) {
@@ -529,11 +585,14 @@ private extension MapHomeView {
                     }
                     .buttonStyle(.plain)
                     .disabled(
-                        locationName.trimmingCharacters(in: .whitespaces).isEmpty ||
-                        locationAddress.trimmingCharacters(in: .whitespaces).isEmpty
+                        locationName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                        locationAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                        isResolvingAddress
                     )
                     .opacity(
-                        locationName.isEmpty || locationAddress.isEmpty ? 0.6 : 1
+                        locationName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                        locationAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                        isResolvingAddress ? 0.6 : 1
                     )
                 }
             }
