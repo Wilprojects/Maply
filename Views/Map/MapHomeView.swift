@@ -444,6 +444,7 @@ private extension MapHomeView {
             Text("Mi Ubicación")
                 .font(.system(size: 22, weight: .bold, design: .rounded))
                 .foregroundStyle(AppColors.primaryText)
+                .accessibilityIdentifier("map_home_title")
             
             Spacer()
             

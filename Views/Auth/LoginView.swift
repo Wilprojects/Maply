@@ -84,6 +84,7 @@ private extension LoginView {
                     .autocorrectionDisabled()
                     .foregroundStyle(AppColors.primaryText)
                     .tint(AppColors.primaryBlue)
+                    .accessibilityIdentifier("login_email_textfield")
                     .onChange(of: viewModel.email) { _, _ in
                         viewModel.clearErrorOnInput()
                     }
@@ -100,8 +101,10 @@ private extension LoginView {
                 Group {
                     if viewModel.isPasswordVisible {
                         TextField("Contraseña", text: $viewModel.password)
+                            .accessibilityIdentifier("login_password_textfield")
                     } else {
                         SecureField("Contraseña", text: $viewModel.password)
+                            .accessibilityIdentifier("login_password_textfield")
                     }
                 }
                 .foregroundStyle(AppColors.primaryText)
@@ -181,6 +184,7 @@ private extension LoginView {
         .buttonStyle(.plain)
         .disabled(!viewModel.isFormValid || viewModel.isLoading)
         .opacity((!viewModel.isFormValid || viewModel.isLoading) ? 0.7 : 1)
+        .accessibilityIdentifier("login_submit_button")
     }
     
     var credentialsBorderColor: Color {

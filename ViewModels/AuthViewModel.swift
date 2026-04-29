@@ -64,7 +64,7 @@ final class AuthViewModel: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
             self.isLoading = false
             
-            if self.trimmedEmail.lowercased() == "demo@maply.com" && self.trimmedPassword == "123456" {
+            if self.trimmedEmail.lowercased() == "wilder@maply.com" && self.trimmedPassword == "123456" {
                 let fakeToken = UUID().uuidString
                 
                 let tokenSaved = KeychainService.shared.save(fakeToken, forKey: KeychainKeys.authToken)
